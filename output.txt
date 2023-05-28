@@ -1,0 +1,21 @@
+.
+├── API
+│   ├── controllers
+│   │   └── user_controller.py
+│   └── routes
+│       └── user_routes.py
+├── core
+├── main.py
+├── models
+│   └── user.py
+├── output.txt
+├── requirements.txt
+├── services
+│   ├── dao
+│   │   └── user_dao.py
+│   └── user_service.py
+└── utils
+    ├── config.py
+    └── hashing.py
+
+8 directories, 10 files
