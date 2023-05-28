@@ -1,5 +1,5 @@
 from services.user_service import UserService
-from services.dao.user_dao import UserDao
+from dao.user_dao import UserDao
 from models.user import UserIn, UserOut
 from datetime import datetime
 from fastapi import APIRouter, HTTPException

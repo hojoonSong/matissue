@@ -1,6 +1,6 @@
 from models.user import UserIn, UserInDB
 from utils.hashing import Hasher
-from services.dao.user_dao import UserDao
+from dao.user_dao import UserDao
 
 
 class UserService:
