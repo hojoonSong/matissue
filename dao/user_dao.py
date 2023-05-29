@@ -14,3 +14,9 @@ class UserDao:
     async def create_user_in_db(self, user_in_db: UserInDB):
         result = await self.collection.insert_one(user_in_db.dict())
         return str(result.inserted_id)
+
+    async def get_user_by_id(self, user_id: str):
+        user_doc = await self.collection.find_one({"user_id": user_id})
+        if user_doc:
+            return UserInDB(**user_doc)
+        return None
