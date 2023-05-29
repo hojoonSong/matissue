@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     birth_date: Optional[date]
+    img: Optional[str]
 
 
 class UserIn(UserBase):

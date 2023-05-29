@@ -17,7 +17,7 @@ async def create_user(user: UserIn):
     user_id = await user_service.create_user(user)
     if not user_id:
         raise HTTPException(status_code=400, detail="User already exists")
-    return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "created_at": datetime.now()}
+    return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "img": user.img, "created_at": datetime.now()}
 
 
 @router.post("/login", response_model=LoginResponse)
