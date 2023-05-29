@@ -1,3 +1,9 @@
 .env
+.gitignore
+.vscode
+
+# Ignore pycache folders
 __pycache__/
+
+# Ignore pyc files
 *.pyc
