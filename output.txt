@@ -18,5 +18,3 @@
     ├── config.py
     ├── hashing.py
     └── session_manager.py
-
-7 directories, 12 files
