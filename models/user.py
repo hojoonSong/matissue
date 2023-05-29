@@ -31,6 +31,7 @@ class UserInDB(UserBase):
 
 class LoginResponse(BaseModel):
     message: str
+    session_id: str
 
 
 class LoginRequest(BaseModel):

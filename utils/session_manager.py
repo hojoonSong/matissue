@@ -8,6 +8,7 @@ settings = get_settings()
 
 r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
+
 class SessionManager:
     def create_session(self, data: Any):
         session_id = str(uuid.uuid4())

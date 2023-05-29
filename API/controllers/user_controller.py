@@ -2,7 +2,7 @@ from services.user_service import UserService
 from dao.user_dao import UserDao
 from models.user import UserIn, UserOut, LoginResponse, LoginRequest
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from dao.user_dao import UserDao
 
 router = APIRouter()
@@ -21,9 +21,10 @@ async def create_user(user: UserIn):
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(user: LoginRequest):
+async def login(user: LoginRequest, response: Response):
     result = await user_service.login(user.user_id, user.password)
     if result:
-        return LoginResponse(message="로그인에 성공했습니다.", session_id=result["session_id"])
+        response.set_cookie(key="session_id", value=result["session_id"])
+        return LoginResponse(message="로그인에 성공했습니다!", session_id=result["session_id"])
     else:
         raise HTTPException(status_code=400, detail="로그인에 실패했습니다.")
