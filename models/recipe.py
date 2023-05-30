@@ -1,8 +1,7 @@
-from enum import Enum
-from pydantic import BaseModel, Field, HttpUrl
+from enum import Enum, IntEnum
+from pydantic import BaseModel, Field
 from typing import List
-from uuid import UUID, uuid4
-from bson import ObjectId
+from nanoid import generate
 
 
 class Category(str, Enum):
@@ -19,10 +18,16 @@ class Ingredients(BaseModel):
     amount: str
 
 
+class LevelEnum(IntEnum):
+    EASY = 0
+    MEDIUM = 1
+    HARD = 2
+
+
 class Information(BaseModel):
     serving: int  # 인원
-    time: int  # 조리시간
-    level: int  # 난이도
+    time: str  # 조리시간/ FE 담당자와 논의 후 str으로 변경한 상태 코치님과 논의해보면 좋을듯
+    level: LevelEnum  # 난이도
 
 
 class SequenceItem(BaseModel):
@@ -31,7 +36,7 @@ class SequenceItem(BaseModel):
 
 
 class Recipe(BaseModel):
-    recipe_id: str = Field(default=0)
+    recipe_id: str = Field(default_factory=lambda: generate())
     recipe_title: str
     recipe_thumbnail: str
     recipe_video: str
