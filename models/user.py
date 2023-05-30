@@ -54,5 +54,5 @@ class LogoutRequest(BaseModel):
     session_id: str
 
 
-class LogoutResponse(BaseModel):
+class MessageResponse(BaseModel):
     message: str

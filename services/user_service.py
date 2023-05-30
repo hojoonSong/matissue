@@ -1,4 +1,4 @@
-from models.user import UserIn, UserInDB
+from models.user import UserIn, UserInDB, LoginRequest
 from utils.hashing import Hasher
 from utils.session_manager import SessionManager
 from datetime import datetime
@@ -38,6 +38,16 @@ class UserService:
             created_at=datetime.now()
         )
         return await self.user_dao.create_user_in_db(user_in_db)
+
+    async def delete_user(self, user_id: str, password: str):
+        user = await self.user_dao.get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=404, detail=f"사용자 아이디가 존재하지 않습니다.")
+
+        if not Hasher.verify_password(password, user.hashed_password):
+            raise HTTPException(status_code=401, detail=f"비밀번호가 일치하지 않습니다.")
+        return await self.user_dao.delete_user(user_id)
 
     async def login(self, user_id: str, password: str):
         timeout_key = f'timeout:{user_id}'
