@@ -40,6 +40,21 @@ class UserInDB(UserBase):
     created_at: Optional[datetime]
 
 
+class UserUpdate(UserBase):
+    username: Optional[str]
+    email: Optional[EmailStr]
+    birth_date: Optional[date]
+    img: Optional[str]
+    password: Optional[str]
+
+    @validator('password')
+    def validate_password(cls, password: str):
+        if len(password) < 8 or not re.findall("\d", password) or not re.findall("[A-Z]", password) or not re.findall("[a-z]", password):
+            raise HTTPException(
+                status_code=400, detail='비밀번호는 8글자 이상, 숫자와 문자를 혼용하여야 합니다.')
+        return password
+
+
 class LoginResponse(BaseModel):
     message: str
     session_id: str
@@ -48,6 +63,10 @@ class LoginResponse(BaseModel):
 class LoginRequest(BaseModel):
     user_id: str
     password: str
+
+
+class DeleteRequest(LoginRequest):
+    session_id: str
 
 
 class LogoutRequest(BaseModel):

@@ -39,7 +39,7 @@ class UserService:
         )
         return await self.user_dao.create_user_in_db(user_in_db)
 
-    async def delete_user(self, user_id: str, password: str):
+    async def delete_user(self, user_id: str, password: str, session_id: str):
         user = await self.user_dao.get_user_by_id(user_id)
         if not user:
             raise HTTPException(
@@ -47,7 +47,29 @@ class UserService:
 
         if not Hasher.verify_password(password, user.hashed_password):
             raise HTTPException(status_code=401, detail=f"비밀번호가 일치하지 않습니다.")
+
+        self.session_manager.delete_session(session_id)
         return await self.user_dao.delete_user(user_id)
+
+    async def update_user(self, user: UserInDB):
+        existing_user = await self.user_dao.get_user_by_id(user.user_id)
+        if not existing_user:
+            raise HTTPException(
+                status_code=404, detail=f"사용자 아이디 '{user.user_id}'은 찾을 수 없습니다.")
+
+        existing_email_user = await self.user_dao.get_user_by_email(user.email)
+        if existing_email_user and existing_email_user.user_id != user.user_id:
+            raise HTTPException(
+                status_code=400, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
+
+        user_in_db = UserInDB(
+            **user.dict(exclude={'password'}),
+            hashed_password=Hasher.get_hashed_password(
+                user.password) if user.password else existing_user.hashed_password,
+            created_at=datetime.now())
+
+        await self.user_dao.update_user_in_db(user_in_db)
+        return True
 
     async def login(self, user_id: str, password: str):
         timeout_key = f'timeout:{user_id}'

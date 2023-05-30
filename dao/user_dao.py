@@ -14,6 +14,13 @@ class UserDao:
         result = await self.collection.insert_one(user_in_db.dict())
         return str(result.inserted_id)
 
+    async def update_user_in_db(self, user_in_db: UserInDB):
+        result = await self.collection.replace_one({"user_id": user_in_db.user_id}, user_in_db.dict())
+        if result.modified_count == 1:
+            return True
+        else:
+            return False
+
     async def delete_user(self, user_id: str):
         delete_result = await self.collection.delete_one({"user_id": user_id})
         if delete_result.deleted_count:

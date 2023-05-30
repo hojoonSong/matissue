@@ -1,6 +1,6 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
-from models.user import UserIn, UserOut, LoginResponse, LoginRequest, LogoutRequest, MessageResponse
+from models.user import UserUpdate, UserIn, UserOut, UserInDB, LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response
 
@@ -19,9 +19,20 @@ async def create_user(user: UserIn):
     return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "img": user.img, "created_at": datetime.now()}
 
 
+@router.put("/", response_model=UserOut)
+async def update_user(user: UserUpdate):
+    user_in_db = UserInDB(**user.dict(), hashed_password='')
+    updated = await user_service.update_user(user_in_db)
+    if not updated:
+        raise HTTPException(status_code=400, detail="사용자 정보 업데이트에 실패하였습니다.")
+    updated_user = await user_dao.get_user_by_id(user.user_id)
+    return {"user_id": updated_user.user_id, "username": updated_user.username, "email": updated_user.email, "birth_date": updated_user.birth_date, "img": updated_user.img, "created_at": updated_user.created_at}
+
+
 @router.delete("/", response_model=MessageResponse)
-async def delete_user(user: LoginRequest):
-    result = await user_service.delete_user(user.user_id, user.password)
+async def delete_user(user: DeleteRequest):
+    session_id = DeleteRequest.session_id
+    result = await user_service.delete_user(user.user_id, user.password, str(session_id))
     if not result:
         raise HTTPException(status_code=400, detail="사용자 탈퇴에 실패하였습니다.")
     return MessageResponse(message="성공적으로 탈퇴되었습니다!")
