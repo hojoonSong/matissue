@@ -1,7 +1,7 @@
-from models.user import UserIn, UserInDB, LoginRequest
+from models.user import UserIn, UserInDB
 from utils.hashing import Hasher
 from utils.session_manager import SessionManager
-from datetime import datetime, date
+from datetime import datetime
 from dao.user_dao import UserDao
 from fastapi import HTTPException
 from utils.config import get_settings

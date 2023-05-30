@@ -1,7 +1,7 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
-from models.user import UserUpdate, UserIn, UserOut, UserInDB, LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
-from datetime import datetime, date
+from models.user import UserUpdate, UserIn, UserOut, LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
+from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response
 
 router = APIRouter()
@@ -11,12 +11,19 @@ user_service = UserService(user_dao)
 
 @router.post("/", response_model=UserOut, status_code=201)
 async def create_user(user: UserIn):
-    user_dao = UserDao()
-    user_service = UserService(user_dao)
     user_id = await user_service.create_user(user)
     if not user_id:
         raise HTTPException(status_code=400, detail="사용자가 이미 존재합니다.")
     return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "img": user.img, "created_at": datetime.now()}
+
+
+@router.get("/{user_id}", response_model=UserOut)
+async def get_user(user_id: str):
+    user_in_db = await user_dao.get_user_by_id(user_id)
+    if not user_in_db:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+    return {"user_id": user_in_db.user_id, "username": user_in_db.username, "email": user_in_db.email,
+            "birth_date": user_in_db.birth_date, "img": user_in_db.img, "created_at": user_in_db.created_at}
 
 
 @router.put("/", response_model=UserOut)
