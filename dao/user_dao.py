@@ -1,6 +1,6 @@
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.user import UserInDB
+from models.user import UserInDB, UserUpdate
 
 settings = get_settings()
 

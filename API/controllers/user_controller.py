@@ -21,7 +21,7 @@ async def create_user(user: UserIn):
 
 @router.put("/", response_model=UserOut)
 async def update_user(user: UserUpdate):
-    user_in_db = UserInDB(**user.dict(), hashed_password='')
+    user_in_db = UserUpdate(**user.dict(), hashed_password='')
     updated = await user_service.update_user(user_in_db)
     if not updated:
         raise HTTPException(status_code=400, detail="사용자 정보 업데이트에 실패하였습니다.")
