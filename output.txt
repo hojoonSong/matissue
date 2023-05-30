@@ -9,11 +9,11 @@
 ├── main.py
 ├── models
 │   └── user.py
-├── output.txt
-├── requirements.txt
 ├── services
 │   ├── session_service.py
 │   └── user_service.py
+├── dao
+│   └── user_dao.py
 └── utils
     ├── config.py
     ├── db_manager.py

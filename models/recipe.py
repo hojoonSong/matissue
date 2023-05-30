@@ -1,7 +1,8 @@
 from enum import Enum
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, HttpUrl
 from typing import List
 from uuid import UUID, uuid4
+from bson import ObjectId
 
 
 class Category(str, Enum):
@@ -11,12 +12,6 @@ class Category(str, Enum):
     western = "western"
     vegetarian = "vegetarian"
     other = "other"
-
-
-# class DifficultyLevel(str, Enum):
-#     초급 = "초급"
-#     중급 = "중급"
-#     고급 = "고급"
 
 
 class Ingredients(BaseModel):
@@ -35,14 +30,16 @@ class SequenceItem(BaseModel):
     description: str
 
 
-class RecipeBase(BaseModel):
-    recipe_id: UUID = Field(default_factory=uuid4)
+class Recipe(BaseModel):
+    recipe_id: str = Field(default=0)
     recipe_title: str
     recipe_thumbnail: str
+    recipe_video: str
     recipe_description: str
     recipe_category: List[Category]
     recipe_info: str
     recipe_ingredients: List[Ingredients]
     recipe_sequence: List[SequenceItem]
     recipe_tip: str
-    user_email: EmailStr
+    recipe_like: int = Field(default=0)
+    user_id: str
