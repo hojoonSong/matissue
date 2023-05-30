@@ -15,10 +15,11 @@ class SessionManager:
         r.set(session_id, data)
         return session_id
 
-    def get_session(self, session_id: str):
+    def get_session(self, session_id: str, expiration: int = 3600):
         data = r.get(session_id)
         if data is None:
             raise HTTPException(status_code=401, detail="Invalid session id")
+        r.expire(session_id, expiration)
         return data
 
     def delete_session(self, session_id: str):

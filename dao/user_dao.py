@@ -1,6 +1,6 @@
+from utils.config import get_settings
 from motor.motor_asyncio import AsyncIOMotorClient
 from models.user import UserInDB
-from utils.config import get_settings
 
 settings = get_settings()
 
@@ -17,6 +17,12 @@ class UserDao:
 
     async def get_user_by_id(self, user_id: str):
         user_doc = await self.collection.find_one({"user_id": user_id})
+        if user_doc:
+            return UserInDB(**user_doc)
+        return None
+
+    async def get_user_by_email(self, email: str):
+        user_doc = await self.collection.find_one({"email": email})
         if user_doc:
             return UserInDB(**user_doc)
         return None
