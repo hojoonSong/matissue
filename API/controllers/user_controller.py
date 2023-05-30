@@ -1,7 +1,7 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
 from models.user import UserUpdate, UserIn, UserOut, UserInDB, LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
-from datetime import datetime
+from datetime import datetime, date
 from fastapi import APIRouter, HTTPException, Response
 
 router = APIRouter()
@@ -26,7 +26,8 @@ async def update_user(user: UserUpdate):
     if not updated:
         raise HTTPException(status_code=400, detail="사용자 정보 업데이트에 실패하였습니다.")
     updated_user = await user_dao.get_user_by_id(user.user_id)
-    return {"user_id": updated_user.user_id, "username": updated_user.username, "email": updated_user.email, "birth_date": updated_user.birth_date, "img": updated_user.img, "created_at": updated_user.created_at}
+    return {"user_id": updated_user.user_id, "username": updated_user.username, "email": updated_user.email,
+            "birth_date": updated_user.birth_date, "img": updated_user.img, "created_at": updated_user.created_at}
 
 
 @router.delete("/", response_model=MessageResponse)
