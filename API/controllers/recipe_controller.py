@@ -19,6 +19,17 @@ async def get_all_recipes():
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@router.get("/search")
+async def search_recipes_by_title(title: str) -> List[dict]:
+    pipeline = [
+        {"$match": {"title": {"$regex": title, "$options": "i"}}}
+    ]
+    result = list(collection.aggregate(pipeline))
+    if not result:
+        raise HTTPException(status_code=404, detail="No recipes found")
+    return result
+
+
 @router.get("/{recipe_id}")
 async def get_one_recipe(recipe_id: str):
     try:
@@ -52,7 +63,6 @@ async def register_recipe(recipe: RecipeCreate):
 
 @router.post("/many")
 async def register_recipes(recipes: List[RecipeCreate]):
-    print('ㅎㅇ')
     dao = RecipeDao()
     response = await dao.register_recipes(recipes)
     return response, 200
