@@ -39,3 +39,10 @@ class RecipeDao:
         update_query = {"$inc": {"recipe_like": 1}}
         result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
         return result.modified_count
+
+    async def delete_one_recipe(self, recipe_id: str):
+        result = await self.collection.delete_one({"recipe_id": recipe_id})
+        if result.acknowledged:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제

@@ -50,11 +50,6 @@ class RecipeBase(BaseModel):
     recipe_like: int = Field(default=0)
     user_id: str
 
-    def record_view(self, user_id: str):
-        self.recipe_view += 1
-        self.recipe_view_user_ids.append(user_id)
-        recipe_dao.update_recipe_view(self.recipe_id)
-
 # class RecipeList(RecipeBase):
 #     recipe_id: str = Field(default_factory=lambda: generate())
 #     recipe_title: str

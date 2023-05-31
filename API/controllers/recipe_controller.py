@@ -53,9 +53,10 @@ async def get_one_recipe(recipe_id: str):
         serialized_recipes = json.loads(json.dumps(recipe, default=str))
         await dao.update_recipe_view(recipe_id)
         return JSONResponse(content=serialized_recipes), 200
+    except HTTPException as e:
+        raise e
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
-
 # 레시피 좋아요 클릭시
 
 
@@ -92,6 +93,20 @@ async def register_recipe(recipe: RecipeBase):
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
+# 레시피 하나 삭제하기
+
+
+@router.delete("/{recipe_id}")
+async def delete_recipe(recipe_id: str):
+    dao = RecipeDao()
+    result = await dao.delete_one_recipe(recipe_id)
+    if result == 0:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Recipe with id {recipe_id} not found"
+        )
+    return {"msg": "삭제성공"}, 204
+
 """ 
 계층 분리 전
 """
@@ -118,18 +133,6 @@ async def register_recipes(recipes: List[RecipeBase]):
         )
     return {"message": "Recipes inserted successfully"}, 200
 
-# 레시피 하나 삭제하기
-
-
-@router.delete("/{recipe_id}")
-async def delete_recipe(recipe_id: str):
-    result = await db.delete_one({"recipe_id": recipe_id})
-    if result.deleted_count == 0:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Recipe with id {recipe_id} not found"
-        )
-    return {"msg": "삭제성공"}, 204
 
 # 레시피 하나 수정하기
 
