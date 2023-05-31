@@ -69,6 +69,18 @@ async def delete_recipe(recipe_id: str):
         )
 
 
+@router.delete("/")
+async def delete_all_recipe():
+    result = await dao.delete_all_recipe()
+    if result == 1:
+        return {"msg": "삭제 성공"}, 204
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Can't delete recipes"
+        )
+
+
 @router.post("/many")
 async def register_recipes(recipes: List[RecipeBase]):
     response = await dao.register_recipes(recipes)
