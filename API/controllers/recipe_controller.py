@@ -52,6 +52,7 @@ async def register_recipe(recipe: RecipeCreate):
 
 @router.post("/many")
 async def register_recipes(recipes: List[RecipeCreate]):
+    print('ㅎㅇ')
     dao = RecipeDao()
     response = await dao.register_recipes(recipes)
     return response, 200
@@ -79,12 +80,6 @@ async def delete_all_recipe():
             status_code=404,
             detail=f"Can't delete recipes"
         )
-
-
-@router.post("/many")
-async def register_recipes(recipes: List[RecipeBase]):
-    response = await dao.register_recipes(recipes)
-    return response, 200
 
 
 @router.patch("/{recipe_id}")
