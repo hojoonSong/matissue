@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, EmailStr, validator
 from typing import Optional
-from datetime import datetime, date
+from datetime import datetime
 from fastapi import HTTPException
 import re
 
@@ -27,9 +27,9 @@ class UserIn(UserBase):
 
     @validator('password')
     def validate_password(cls, password):
-        if len(password) < 8 or not re.findall("\d", password) or not re.findall("[A-Z]", password) or not re.findall("[a-z]", password):
+        if len(password) < 8 or not re.findall(r"\d", password) or not re.findall(r"[a-z]", password) or not re.findall(r"[A-Z]", password) or not re.findall(r"[^\w\s]", password):
             raise HTTPException(
-                status_code=400, detail='비밀번호는 8글자 이상, 숫자와 문자를 혼용하여야 합니다.')
+                status_code=400, detail='비밀번호는 8글자 이상, 대소문자, 특수문자, 숫자를 혼용하여야 합니다.')
         return password
 
     @validator('user_id')
