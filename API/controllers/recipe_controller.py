@@ -1,3 +1,6 @@
+from bson import json_util
+from utils.config import get_settings
+from utils.db_manager import MongoDBManager
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
@@ -5,8 +8,12 @@ import json
 from models.recipe import RecipeBase, RecipeCreate
 from dao.recipe_dao import RecipeDao
 
+
 router = APIRouter()
 dao = RecipeDao()
+settings = get_settings()
+db_manager = MongoDBManager()
+collection = db_manager.get_collection("recipes")
 
 
 @router.get("/")
@@ -20,14 +27,18 @@ async def get_all_recipes():
 
 
 @router.get("/search")
-async def search_recipes_by_title(title: str) -> List[dict]:
+async def search_recipes_by_title(title: str):
     pipeline = [
-        {"$match": {"title": {"$regex": title, "$options": "i"}}}
+        {"$match": {"recipe_title": {"$regex": title, "$options": "i"}}}
     ]
-    result = list(collection.aggregate(pipeline))
+    result_cursor = collection.aggregate(pipeline)
+    result = []
+    async for document in result_cursor:
+        result.append(json_util.loads(json_util.dumps(document)))
     if not result:
         raise HTTPException(status_code=404, detail="No recipes found")
-    return result
+    serialized_recipes = json.loads(json.dumps(result, default=str))
+    return JSONResponse(content=serialized_recipes)
 
 
 @router.get("/{recipe_id}")
