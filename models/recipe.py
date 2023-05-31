@@ -26,7 +26,7 @@ class LevelEnum(IntEnum):
 
 class Information(BaseModel):
     serving: int  # 인원
-    time: str  # 조리시간/ FE 담당자와 논의 후 str으로 변경한 상태 코치님과 논의해보면 좋을듯
+    time: int  # 조리시간
     level: LevelEnum  # 난이도
 
 
@@ -35,16 +35,34 @@ class SequenceItem(BaseModel):
     description: str
 
 
-class Recipe(BaseModel):
+class RecipeBase(BaseModel):
     recipe_id: str = Field(default_factory=lambda: generate())
     recipe_title: str
     recipe_thumbnail: str
     recipe_video: str
     recipe_description: str
     recipe_category: List[Category]
-    recipe_info: str
+    recipe_info: Information
     recipe_ingredients: List[Ingredients]
     recipe_sequence: List[SequenceItem]
     recipe_tip: str
+    recipe_view: int = Field(default=0)
     recipe_like: int = Field(default=0)
     user_id: str
+
+    def record_view(self, user_id: str):
+        self.recipe_view += 1
+        self.recipe_view_user_ids.append(user_id)
+        recipe_dao.update_recipe_view(self.recipe_id)
+
+# class RecipeList(RecipeBase):
+#     recipe_id: str = Field(default_factory=lambda: generate())
+#     recipe_title: str
+#     recipe_thumbnail: str
+#     recipe_like: int = Field(default=0)
+#     user_id: str
+
+
+# class RecipeSearchByCategory(RecipeBase):
+# class RecipeSearchByTime(RecipeBase):
+# class RecipeSearchByIngredient(RecipeBase):
