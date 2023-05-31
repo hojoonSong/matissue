@@ -36,7 +36,6 @@ class SequenceItem(BaseModel):
 
 
 class RecipeBase(BaseModel):
-    recipe_id: str = Field(default_factory=lambda: generate())
     recipe_title: str
     recipe_thumbnail: str
     recipe_video: str
@@ -46,9 +45,21 @@ class RecipeBase(BaseModel):
     recipe_ingredients: List[Ingredients]
     recipe_sequence: List[SequenceItem]
     recipe_tip: str
+
+
+class RecipeCreate(RecipeBase):
+    recipe_id: str = Field(default_factory=lambda: generate())
     recipe_view: int = Field(default=0)
     recipe_like: int = Field(default=0)
     user_id: str
+
+
+class RecipeView(RecipeBase):
+    recipe_view: int
+
+
+class RecipeLike(RecipeBase):
+    recipe_like: int
 
 # class RecipeList(RecipeBase):
 #     recipe_id: str = Field(default_factory=lambda: generate())
