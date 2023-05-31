@@ -59,7 +59,8 @@ class UserUpdate(UserBase):
     @validator('birth_date', pre=True)
     def parse_birth_date(cls, value: str):
         try:
-            return datetime.strptime(value, "%Y-%m-%d")
+            datetime.strptime(value, "%Y-%m-%d")
+            return value
         except ValueError:
             raise HTTPException(
                 status_code=400, detail='birth_date는 "YYYY-MM-DD" 형식이어야 합니다.')
