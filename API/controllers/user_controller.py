@@ -1,12 +1,12 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
-from models.user import UserUpdate, UserIn, UserOut
+from models.user_models import UserUpdate, UserIn, UserOut
 from models.response_models import LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response, Depends
 from utils.session_manager import get_current_session
 from utils.permission_manager import check_user_permissions
-from utils.response_utils import common_responses
+from utils.response_manager import common_responses
 
 router = APIRouter()
 user_dao = UserDao()

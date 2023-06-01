@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import json
-from models.recipe import RecipeBase, RecipeCreate
+from models.recipe_models import RecipeBase, RecipeCreate
 from dao.recipe_dao import RecipeDao
 
 

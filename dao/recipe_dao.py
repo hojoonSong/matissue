@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from pymongo import ReturnDocument
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.recipe import RecipeBase, RecipeView, RecipeLike, RecipeCreate
+from models.recipe_models import RecipeBase, RecipeView, RecipeLike, RecipeCreate
 
 settings = get_settings()
 

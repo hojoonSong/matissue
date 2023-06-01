@@ -1,5 +1,5 @@
-from models.user import UserIn, UserInDB
-from utils.hashing import Hasher
+from models.user_models import UserIn, UserInDB
+from utils.hash_manager import Hasher
 from utils.session_manager import SessionManager
 from datetime import datetime
 from dao.user_dao import UserDao
