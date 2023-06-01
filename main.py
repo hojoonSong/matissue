@@ -12,4 +12,4 @@ sys.path.insert(0, new_cache_dir)
 
 app = FastAPI()
 
-app.include_router(api_router, prefix="/api", tags=["api"])
+app.include_router(api_router, prefix="/api")
