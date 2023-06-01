@@ -5,6 +5,7 @@ from datetime import datetime
 from dao.user_dao import UserDao
 from fastapi import HTTPException
 from utils.config import get_settings
+from utils.permission_manager import check_user_permissions
 import redis
 
 settings = get_settings()
@@ -52,6 +53,7 @@ class UserService:
         return await self.user_dao.delete_user(user_id)
 
     async def update_user(self, user: UserInDB):
+        check_user_permissions(user.user_id)
         existing_user = await self.user_dao.get_user_by_id(user.user_id)
         if not existing_user:
             raise HTTPException(

@@ -71,25 +71,3 @@ class UserUpdate(UserBase):
             raise HTTPException(
                 status_code=400, detail='비밀번호는 8글자 이상, 숫자와 대소문자를 혼용하여야 합니다.')
         return password
-
-
-class LoginResponse(BaseModel):
-    message: str
-    session_id: str
-
-
-class LoginRequest(BaseModel):
-    user_id: str
-    password: str
-
-
-class DeleteRequest(LoginRequest):
-    session_id: str
-
-
-class LogoutRequest(BaseModel):
-    session_id: str
-
-
-class MessageResponse(BaseModel):
-    message: str
