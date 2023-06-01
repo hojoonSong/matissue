@@ -31,6 +31,7 @@ class Information(BaseModel):
 
 
 class SequenceItem(BaseModel):
+    step: int  # url 들어갈예정
     picture: str  # url 들어갈예정
     description: str
 
@@ -40,7 +41,7 @@ class RecipeBase(BaseModel):
     recipe_thumbnail: str
     recipe_video: str
     recipe_description: str
-    recipe_category: List[Category]
+    recipe_category: Category
     recipe_info: Information
     recipe_ingredients: List[Ingredients]
     recipe_sequence: List[SequenceItem]

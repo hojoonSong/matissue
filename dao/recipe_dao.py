@@ -54,6 +54,13 @@ class RecipeDao:
         else:
             return 0  # 문서 삭제 실패
 
+    async def delete_all_recipe(self):
+        result = await self.collection.delete_many({})
+        if result.deleted_count != 0:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제 실패
+
     async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase):
         updated_recipe_dict = updated_recipe.dict(exclude={"recipe_id"})
         updated_document = await self.collection.find_one_and_update(

@@ -1,3 +1,6 @@
+from bson import json_util
+from utils.config import get_settings
+from utils.db_manager import MongoDBManager
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
@@ -5,8 +8,12 @@ import json
 from models.recipe import RecipeBase, RecipeCreate
 from dao.recipe_dao import RecipeDao
 
+
 router = APIRouter()
 dao = RecipeDao()
+settings = get_settings()
+db_manager = MongoDBManager()
+collection = db_manager.get_collection("recipes")
 
 
 @router.get("/")
@@ -17,6 +24,21 @@ async def get_all_recipes():
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@router.get("/search")
+async def search_recipes_by_title(title: str):
+    pipeline = [
+        {"$match": {"recipe_title": {"$regex": title, "$options": "i"}}}
+    ]
+    result_cursor = collection.aggregate(pipeline)
+    result = []
+    async for document in result_cursor:
+        result.append(json_util.loads(json_util.dumps(document)))
+    if not result:
+        raise HTTPException(status_code=404, detail="No recipes found")
+    serialized_recipes = json.loads(json.dumps(result, default=str))
+    return JSONResponse(content=serialized_recipes)
 
 
 @router.get("/{recipe_id}")
@@ -69,10 +91,16 @@ async def delete_recipe(recipe_id: str):
         )
 
 
-@router.post("/many")
-async def register_recipes(recipes: List[RecipeBase]):
-    response = await dao.register_recipes(recipes)
-    return response, 200
+@router.delete("/")
+async def delete_all_recipe():
+    result = await dao.delete_all_recipe()
+    if result == 1:
+        return {"msg": "삭제 성공"}, 204
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Can't delete recipes"
+        )
 
 
 @router.patch("/{recipe_id}")
