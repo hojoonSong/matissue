@@ -27,9 +27,16 @@ async def get_all_recipes():
 
 
 @router.get("/search")
-async def search_recipes_by_title(title: str):
+async def search_recipes_by_title(value: str):
     pipeline = [
-        {"$match": {"recipe_title": {"$regex": title, "$options": "i"}}}
+        {"$match": {
+            "$or": [
+                {"recipe_title": {"$regex": value, "$options": "i"}},
+                {"recipe_category": {"$regex": value, "$options": "i"}},
+                {"recipe_info": {"$regex": value, "$options": "i"}},
+                {"recipe_ingredients.name": {"$regex": value, "$options": "i"}}
+            ]
+        }}
     ]
     result_cursor = collection.aggregate(pipeline)
     result = []
