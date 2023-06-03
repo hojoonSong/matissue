@@ -7,10 +7,19 @@ import sys
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "*",
+    "https://matissue.onrender.com",
+    # 필요한 출처를 추가하십시오.
+]
+
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 실제 서비스에서는 허용할 도메인을 명시적으로 설정하는 것이 좋습니다.
+    allow_origins=origins,  # 실제 서비스에서는 허용할 도메인을 명시적으로 설정하는 것이 좋습니다.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
