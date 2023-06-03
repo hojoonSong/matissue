@@ -4,18 +4,20 @@
 │   │   └── user_controller.py
 │   └── routes
 │       └── user_routes.py
-├── core
+├── dao
+│   └── user_dao.py
 ├── main.py
 ├── models
 │   └── user.py
-├── output.txt
-├── requirements.txt
 ├── services
-│   ├── dao
-│   │   └── user_dao.py
+│   ├── session_service.py
 │   └── user_service.py
+├── dao
+│   └── user_dao.py
 └── utils
     ├── config.py
-    └── hashing.py
+    ├── db_manager.py
+    ├── hashing.py
+    └── session_manager.py
 
-8 directories, 10 files
+7 directories, 13 files
