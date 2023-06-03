@@ -3,10 +3,11 @@ from dao.user_dao import UserDao
 from models.user_models import UserUpdate, UserIn, UserOut
 from models.response_models import LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Response, Depends
-from utils.session_manager import get_current_session
+from fastapi import APIRouter, HTTPException, Response, Depends, Query
+from utils.session_manager import SessionManager, get_current_session
 from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
+from utils.email_manager import send_email
 
 router = APIRouter()
 user_dao = UserDao()
@@ -14,11 +15,26 @@ user_service = UserService(user_dao)
 
 
 @router.post("/", response_model=UserOut, status_code=201, responses=common_responses)
-async def create_user(user: UserIn):
-    user_id = await user_service.create_user(user)
-    if not user_id:
-        raise HTTPException(status_code=400, detail="사용자가 이미 존재합니다.")
-    return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "img": user.img, "created_at": datetime.now()}
+async def create_user(user: UserIn, session_manager: SessionManager = Depends(SessionManager)):
+    verification_code = session_manager.create_verification_code(user.email)
+    verification_link = f"https://localhost:8000/api/verify?code={verification_code}"
+
+    subject = "맛이슈에 가입인증 이메일입니다."
+    message = f"가입 인증을 완료하려면 다음 링크를 클릭하세요: {verification_link}"
+    "이 이메일 인증 코드는 24시간 동안만 유효합니다."
+
+    result = send_email(user.email, subject, message)
+    if "error" in result:
+        raise HTTPException(status_code=500, detail="이메일 전송 실패")
+
+    if session_manager.verify_email(verification_code):
+        created_user = await user_service.create_user(user)
+        if not created_user:
+            raise HTTPException(status_code=400, detail="계정을 생성할 수 없습니다.")
+        return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "img": user.img, "created_at": datetime.now()}
+    else:
+        raise HTTPException(
+            status_code=400, detail="이메일 인증 코드가 만료되었거나 잘못되었습니다.")
 
 
 @router.put("/", response_model=UserOut, dependencies=[Depends(get_current_session)], responses=common_responses)
@@ -85,9 +101,26 @@ async def get_user(current_user: str = Depends(get_current_session)):
 
 
 @router.get("/", dependencies=[Depends(get_current_session)], responses=common_responses)
-async def get_users(current_user: str = Depends(get_current_session)):
+async def get_users(
+    current_user: str = Depends(get_current_session),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(10, ge=1)
+):
     if current_user != "admin":
         raise HTTPException(status_code=403, detail="권한이 없습니다.")
 
     users = await user_dao.get_users()
-    return users
+
+    # 페이지네이션 로직
+    total_items = len(users)
+    total_pages = (total_items + per_page - 1) // per_page
+    offset = (page - 1) * per_page
+    users = users[offset:offset + per_page]
+
+    return {
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "total_items": total_items,
+        "users": users
+    }
