@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum, IntEnum
 from pydantic import BaseModel, Field
 from typing import List
@@ -49,13 +50,14 @@ class RecipeBase(BaseModel):
     recipe_id: str = Field(default_factory=lambda: generate())
     recipe_view: int = Field(default=0)
     recipe_like: int = Field(default=0)
-    user_id: str
+
 
 class RecipeCreate(RecipeBase):
     recipe_id: str = Field(default_factory=lambda: generate())
     recipe_view: int = Field(default=0)
-    recipe_like: int = Field(default=0)
     user_id: str
+    user_nickname: str = Field(default='test')
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class RecipeView(RecipeBase):

@@ -5,7 +5,7 @@ from pymongo import ReturnDocument
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
 from models.recipe_models import RecipeBase, RecipeView, RecipeLike, RecipeCreate
-
+from datetime import datetime
 settings = get_settings()
 
 
@@ -19,6 +19,9 @@ class RecipeDao:
         return result
 
     async def register_recipe(self, recipe: RecipeCreate):
+        recipe_data = recipe.dict()
+        #  생성일자를 추가합니다.
+        recipe_data["created_at"] = datetime.utcnow()
         await self.collection.insert_one(recipe.dict())
         return {"recipe_id": recipe.recipe_id, "full": recipe}
 
