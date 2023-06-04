@@ -7,7 +7,7 @@ from .config import get_settings
 
 settings = get_settings()
 
-r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
 
 class Session(BaseModel):
@@ -17,37 +17,37 @@ class Session(BaseModel):
 class SessionManager:
     def create_session(self, data: str):
         session_id = str(uuid.uuid4())
-        r.set(session_id, data)
+        redis_client.set(session_id, data)
         return session_id
 
     def get_session(self, session_id: str, expiration: int = 3600):
         if session_id is None:
             raise ValueError("Session ID cannot be None")
-        data = r.get(session_id)
+        data = redis_client.get(session_id)
         if data is None:
             raise HTTPException(status_code=401, detail="Invalid session id")
-        r.expire(session_id, expiration)
+        redis_client.expire(session_id, expiration)
         return data
 
     def delete_session(self, session_id: str):
-        r.delete(session_id)
+        redis_client.delete(session_id)
 
     def create_verification_code(self, email: str):
         verification_code = str(uuid.uuid4())
-        r.set(verification_code, email, ex=86400)
+        redis_client.set(verification_code, email, ex=86400)
         return verification_code
 
     def verify_email(self, code: str):
-        email = r.get(code)
+        email = redis_client.get(code)
         if email is None:
             return False
-        r.delete(code)
+        redis_client.delete(code)
         return email
 
 
-def get_current_session(session: Session = Depends()) -> str:
+def get_current_session(session_id: str = Header(...)) -> str:
     session_manager = SessionManager()
-    current_user = session_manager.get_session(session.id)
+    current_user = session_manager.get_session(session_id)
     if current_user is None:
         raise HTTPException(
             status_code=401,

@@ -1,7 +1,7 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
 from models.user_models import UserUpdate, UserIn, UserOut
-from models.response_models import LoginResponse, LoginRequest, LogoutRequest, MessageResponse, DeleteRequest
+from models.response_models import LoginResponse, LoginRequest, MessageResponse, DeleteRequest
 from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response, Depends, Query
 from utils.session_manager import SessionManager, get_current_session
@@ -68,27 +68,25 @@ async def delete_user(user: DeleteRequest, current_user: str = Depends(get_curre
 async def login(user: LoginRequest, response: Response):
     result = await user_service.login(user.user_id, user.password)
     if result:
-        response.set_cookie(key="session_id", value=result["session_id"])
+        response.set_cookie(
+            key="session-id", value=result["session_id"], secure="None", httponly="True", samesite="None")
         return LoginResponse(message="로그인에 성공했습니다!", session_id=result["session_id"])
-    else:
-        raise HTTPException(status_code=400, detail="로그인에 실패했습니다.")
+    raise HTTPException(status_code=400, detail="로그인에 실패했습니다.")
 
 
 @router.post("/logout", response_model=MessageResponse, dependencies=[Depends(get_current_session)], responses=common_responses)
-async def logout(logout_request: LogoutRequest):
-    session_id = logout_request.session_id
-    result = await user_service.logout(str(session_id))
+async def logout(current_user: str = Depends(get_current_session)):
+    result = await user_service.logout(str(current_user))
     if result:
         return MessageResponse(message="로그아웃에 성공하였습니다.")
-    else:
-        raise HTTPException(status_code=400, detail="로그아웃에 실패했습니다.")
+    raise HTTPException(status_code=400, detail="로그아웃에 실패했습니다.")
 
 
-@router.post("/me", response_model=UserOut, dependencies=[Depends(get_current_session)], responses=common_responses)
+@router.get("/me", response_model=UserOut, dependencies=[Depends(get_current_session)], responses=common_responses)
 async def get_user(current_user: str = Depends(get_current_session)):
     user_in_db = await user_dao.get_user_by_id(current_user)
     if not user_in_db:
-        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        raise HTTPException(status_code=404, detail="User not found")
 
     return {
         "user_id": user_in_db.user_id,
