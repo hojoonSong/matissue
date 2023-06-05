@@ -30,7 +30,7 @@ service = RecipeService()
 @router.get("/categories")
 async def get_recipes_by_categories(value: str):
     try:
-        recipes = await dao.get_recipes_by_categories(value)
+        recipes = await service.get_recipes_by_categories(value)
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
@@ -72,13 +72,13 @@ async def search_recipes_by_title(value: str):
 @router.get("/{recipe_id}")
 async def get_recipe_by_recipe_id(recipe_id: str):
     try:
-        recipe = await dao.get_recipe_by_recipe_id(recipe_id)
+        recipe = await service.get_recipe_by_recipe_id(recipe_id)
         if recipe is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"Recipe with id {recipe_id} not found"
             )
-        await dao.update_recipe_view(recipe_id)
+        await service.update_recipe_view(recipe_id)
         serialized_recipes = json.loads(json.dumps(recipe, default=str))
         return JSONResponse(content=serialized_recipes), 200
     except HTTPException as e:
@@ -89,7 +89,7 @@ async def get_recipe_by_recipe_id(recipe_id: str):
 
 @router.get("/user/{user_id}", response_model=RecipeGetMany)
 async def get_recipes_by_user_id(user_id: str):
-    recipe = await dao.get_recipes_by_user_id(user_id)
+    recipe = await service.get_recipes_by_user_id(user_id)
     print(recipe)
     return ({"recipes": recipe})
 
@@ -97,7 +97,7 @@ async def get_recipes_by_user_id(user_id: str):
 @router.post("/")
 async def register_recipe(recipe: RecipeCreate):
     try:
-        result = await dao.register_recipe(recipe)
+        result = await service.register_recipe(recipe)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to insert recipe")
@@ -108,13 +108,13 @@ async def register_recipe(recipe: RecipeCreate):
 
 @router.post("/many")
 async def register_recipes(recipes: List[RecipeCreate]):
-    response = await dao.register_recipes(recipes)
+    response = await service.register_recipes(recipes)
     return response, 200
 
 
 @router.delete("/{recipe_id}")
 async def delete_recipe(recipe_id: str):
-    result = await dao.delete_one_recipe(recipe_id)
+    result = await service.delete_one_recipe(recipe_id)
     if result == 1:
         return {"msg": "삭제 성공"}, 204
     else:
@@ -126,7 +126,7 @@ async def delete_recipe(recipe_id: str):
 
 @router.delete("/")
 async def delete_all_recipe():
-    result = await dao.delete_all_recipe()
+    result = await service.delete_all_recipe()
     if result == 1:
         return {"msg": "삭제 성공"}, 204
     else:
@@ -139,7 +139,7 @@ async def delete_all_recipe():
 @router.patch("/{recipe_id}")
 async def update_recipe(recipe_id: str, updated_recipe: RecipeBase):
     try:
-        updated_document = await dao.update_recipe(recipe_id, updated_recipe)
+        updated_document = await service.update_recipe(recipe_id, updated_recipe)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
         return JSONResponse(content=updated_document_dict)
@@ -158,13 +158,13 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeBase):
 @router.patch("/{recipe_id}/like")
 async def update_like(recipe_id: str):
     try:
-        recipe = await dao.get_recipe_by_id(recipe_id)
+        recipe = await service.get_recipe_by_id(recipe_id)
         if recipe is None:
             raise HTTPException(
                 status_code=404,
                 detail=f"Recipe with id {recipe_id} not found"
             )
-        await dao.update_recipe_like(recipe_id)
+        await service.update_recipe_like(recipe_id)
         serialized_recipe = json.loads(json.dumps(recipe, default=str))
         return serialized_recipe
 
