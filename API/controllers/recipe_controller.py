@@ -1,3 +1,4 @@
+from fastapi import HTTPException, Query
 from bson import json_util
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
@@ -5,25 +6,45 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import json
-from models.recipe_models import RecipeBase, RecipeCreate
+from models.recipe_models import RecipeBase, RecipeCreate, RecipeGetMany, RecipeGetOne
 from dao.recipe_dao import RecipeDao
-
+from services.recipe_service import RecipeService
 
 router = APIRouter()
-dao = RecipeDao()
-settings = get_settings()
-db_manager = MongoDBManager()
-collection = db_manager.get_collection("recipes")
+service = RecipeService()
+
+# @router.get("/")
+# async def get_all_recipes(page: int = Query(1, ge=1), limit: int = Query(16, ge=1, le=100)):
+#     try:
+#         # 페이지와 limit 값을 기반으로 offset을 계산합니다.
+#         offset = (page - 1) * limit
+#         # 계산된 offset과 limit을 사용하여 레시피를 가져옵니다.
+#         recipes = await dao.get_all_recipes(offset=offset, limit=limit)
+#         # 레시피를 직렬화합니다.
+#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
+#         return JSONResponse(content=serialized_recipes)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/")
-async def get_all_recipes():
+@router.get("/categories")
+async def get_recipes_by_categories(value: str):
     try:
-        recipes = await dao.get_all_recipe()
+        recipes = await dao.get_recipes_by_categories(value)
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+# @router.get("/")
+# async def get_all_recipes():
+#     try:
+#         recipes = await dao.get_all_recipes()
+#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
+#         return JSONResponse(content=serialized_recipes)
+#     except Exception as e:
+#         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @router.get("/search")
@@ -49,9 +70,9 @@ async def search_recipes_by_title(value: str):
 
 
 @router.get("/{recipe_id}")
-async def get_one_recipe(recipe_id: str):
+async def get_recipe_by_recipe_id(recipe_id: str):
     try:
-        recipe = await dao.get_recipe_by_id(recipe_id)
+        recipe = await dao.get_recipe_by_recipe_id(recipe_id)
         if recipe is None:
             raise HTTPException(
                 status_code=404,
@@ -66,9 +87,15 @@ async def get_one_recipe(recipe_id: str):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@router.get("/user/{user_id}", response_model=RecipeGetMany)
+async def get_recipes_by_user_id(user_id: str):
+    recipe = await dao.get_recipes_by_user_id(user_id)
+    print(recipe)
+    return ({"recipes": recipe})
+
+
 @router.post("/")
 async def register_recipe(recipe: RecipeCreate):
-    dao = RecipeDao()
     try:
         result = await dao.register_recipe(recipe)
         if result is None:
@@ -81,7 +108,6 @@ async def register_recipe(recipe: RecipeCreate):
 
 @router.post("/many")
 async def register_recipes(recipes: List[RecipeCreate]):
-    dao = RecipeDao()
     response = await dao.register_recipes(recipes)
     return response, 200
 

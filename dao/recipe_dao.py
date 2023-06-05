@@ -14,9 +14,33 @@ class RecipeDao:
         self.db_manager = db_manager or MongoDBManager()
         self.collection = self.db_manager.get_collection("recipes")
 
-    async def get_all_recipe(self):
-        result = await self.collection.find().to_list(length=None)
+    # get
+
+    async def get_all_recipes(self):
+        result = await self.collection.find({})
         return result
+    #     return result
+    # async def get_all_recipes(self, offset=0, limit=16):
+    #     result = await self.collection.find().skip(offset).limit(limit).to_list(length=None)
+    #     return result
+
+    async def get_recipes_by_categories(self, category):
+        result = await self.collection.find({"recipe_category": category}).to_list(length=None)
+        return result
+
+    async def get_recipes_by_popularity(self):
+        results = await self.collection.find({"recipe_like": {"$gte": 80}}).to_list(length=None)
+        return results
+
+    async def get_recipe_by_recipe_id(self, id):
+        result = await self.collection.find({"recipe_id": id}).to_list(length=None)
+        return result
+
+    async def get_recipes_by_user_id(self, user_id):
+        result = await self.collection.find({"user_id": user_id}).to_list(length=None)
+        return result
+
+     # post
 
     async def register_recipe(self, recipe: RecipeCreate):
         recipe_data = recipe.dict()
@@ -35,34 +59,7 @@ class RecipeDao:
             )
         return {"message": "Recipes inserted successfully"}
 
-    async def get_recipe_by_id(self, recipe_id: str):
-        # 데이터베이스에서 레시피 정보 조회
-        result = await self.collection.find_one({"recipe_id": recipe_id})
-        return result
-
-    async def update_recipe_view(self, recipe_id: str):
-        update_query = {"$inc": {"recipe_view": 1}}
-        result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
-        return result.modified_count
-
-    async def update_recipe_like(self, recipe_id: str):
-        update_query = {"$inc": {"recipe_like": 1}}
-        result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
-        return result.modified_count
-
-    async def delete_one_recipe(self, recipe_id: str):
-        result = await self.collection.delete_one({"recipe_id": recipe_id})
-        if result.deleted_count == 1:
-            return 1  # 문서가 성공적으로 삭제되었을 경우
-        else:
-            return 0  # 문서 삭제 실패
-
-    async def delete_all_recipe(self):
-        result = await self.collection.delete_many({})
-        if result.deleted_count != 0:
-            return 1  # 문서가 성공적으로 삭제되었을 경우
-        else:
-            return 0  # 문서 삭제 실패
+     # update
 
     async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase):
         updated_recipe_dict = updated_recipe.dict(exclude={"recipe_id"})
@@ -77,3 +74,29 @@ class RecipeDao:
                 detail=f"Recipe with id {recipe_id} not found"
             )
         return updated_document
+
+    async def update_recipe_view(self, recipe_id: str):
+        update_query = {"$inc": {"recipe_view": 1}}
+        result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
+        return result.modified_count
+
+    async def update_recipe_like(self, recipe_id: str):
+        update_query = {"$inc": {"recipe_like": 1}}
+        result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
+        return result.modified_count
+
+     # delete
+
+    async def delete_one_recipe(self, recipe_id: str):
+        result = await self.collection.delete_one({"recipe_id": recipe_id})
+        if result.deleted_count == 1:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제 실패
+
+    async def delete_all_recipe(self):
+        result = await self.collection.delete_many({})
+        if result.deleted_count != 0:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제 실패
