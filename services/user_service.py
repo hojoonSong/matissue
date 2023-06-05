@@ -3,14 +3,14 @@ from utils.hash_manager import Hasher
 from utils.session_manager import SessionManager
 from datetime import datetime
 from dao.user_dao import UserDao
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from utils.config import get_settings
 from utils.permission_manager import check_user_permissions
 import redis
 
 settings = get_settings()
 
-r = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
 
 MAX_LOGIN_ATTEMPTS = 5
@@ -21,6 +21,7 @@ class UserService:
     def __init__(self, user_dao: UserDao):
         self.user_dao = user_dao
         self.session_manager = SessionManager()
+        self.response = Response()
 
     async def create_user(self, user: UserIn):
         existing_user = await self.user_dao.get_user_by_id(user.user_id)
@@ -75,7 +76,7 @@ class UserService:
 
     async def login(self, user_id: str, password: str):
         timeout_key = f'timeout:{user_id}'
-        remaining_time = r.ttl(timeout_key)
+        remaining_time = redis_client.ttl(timeout_key)
         if remaining_time > 0:
             raise HTTPException(
                 status_code=429, detail=f"로그인 시도가 초과되었습니다. {remaining_time}초 후에 다시 시도해주세요.")
@@ -86,15 +87,18 @@ class UserService:
 
         if not Hasher.verify_password(password, user.hashed_password):
             failed_key = f'failed:{user_id}'
-            failed_attempts = r.incr(failed_key)
+            failed_attempts = redis_client.incr(failed_key)
             if failed_attempts >= MAX_LOGIN_ATTEMPTS:
-                r.set(timeout_key, '1', LOGIN_TIMEOUT)
-                r.delete(failed_key)
+                redis_client.set(timeout_key, '1', LOGIN_TIMEOUT)
+                redis_client.delete(failed_key)
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
         session_id = self.session_manager.create_session(user.user_id)
         return {"session_id": session_id}
 
-    async def logout(self, session_id: str):
-        self.session_manager.delete_session(session_id)
+    async def logout(self, session_id: str, response: Response):
+        response.delete_cookie(key="session_id")
+        session = await SessionManager.delete_session(session_id)
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
         return {"detail": "성공적으로 로그아웃되었습니다."}

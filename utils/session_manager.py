@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, status, Header
+from fastapi import Depends, HTTPException, status, Header, Request
 from pydantic import BaseModel
 from typing import Optional
 import uuid
@@ -29,8 +29,10 @@ class SessionManager:
         redis_client.expire(session_id, expiration)
         return data
 
-    def delete_session(self, session_id: str):
-        redis_client.delete(session_id)
+    @staticmethod
+    async def delete_session(session_id: str):
+        result = redis_client.delete(session_id)
+        return result > 0
 
     def create_verification_code(self, email: str):
         verification_code = str(uuid.uuid4())
@@ -45,7 +47,8 @@ class SessionManager:
         return email
 
 
-def get_current_session(session_id: str = Header(...)) -> str:
+def get_current_session(request: Request) -> str:
+    session_id = request.cookies.get("session-id")
     session_manager = SessionManager()
     current_user = session_manager.get_session(session_id)
     if current_user is None:

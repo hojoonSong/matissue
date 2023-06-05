@@ -7,6 +7,7 @@ from typing import List
 import json
 from models.recipe_models import RecipeBase, RecipeCreate
 from dao.recipe_dao import RecipeDao
+from utils.response_manager import common_responses
 
 
 router = APIRouter()
@@ -16,7 +17,7 @@ db_manager = MongoDBManager()
 collection = db_manager.get_collection("recipes")
 
 
-@router.get("/")
+@router.get("/", responses=common_responses)
 async def get_all_recipes():
     try:
         recipes = await dao.get_all_recipe()
@@ -72,11 +73,11 @@ async def register_recipe(recipe: RecipeCreate):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
-@router.post("/many")
+@router.post("/many", response_model=RecipeCreate, status_code=201, responses=common_responses)
 async def register_recipes(recipes: List[RecipeCreate]):
     dao = RecipeDao()
     response = await dao.register_recipes(recipes)
-    return response, 200
+    return HTTPException(status_code=200, detail=f'{response}')
 
 
 @router.delete("/{recipe_id}")

@@ -3,7 +3,7 @@ from dao.user_dao import UserDao
 from models.user_models import UserUpdate, UserIn, UserOut
 from models.response_models import LoginResponse, LoginRequest, MessageResponse, DeleteRequest
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Response, Depends, Query
+from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from utils.session_manager import SessionManager, get_current_session
 from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
@@ -75,10 +75,11 @@ async def login(user: LoginRequest, response: Response):
 
 
 @router.post("/logout", response_model=MessageResponse, dependencies=[Depends(get_current_session)], responses=common_responses)
-async def logout(current_user: str = Depends(get_current_session)):
-    result = await user_service.logout(str(current_user))
-    if result:
-        return MessageResponse(message="로그아웃에 성공하였습니다.")
+async def logout(request: Request, response: Response):
+    session_id = request.cookies.get("session-id")
+    result = await user_service.logout(session_id, response)
+    if result['detail'] == '성공적으로 로그아웃되었습니다.':
+        return MessageResponse(message=result["detail"])
     raise HTTPException(status_code=400, detail="로그아웃에 실패했습니다.")
 
 

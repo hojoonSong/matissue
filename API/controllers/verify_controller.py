@@ -11,4 +11,4 @@ async def verify(code: str = Query(...), session_manager: SessionManager = Depen
         raise HTTPException(
             status_code=400, detail="이메일 인증 코드가 만료되었거나 잘못되었습니다.")
     else:
-        return {"message": "Email verification successful"}
+        return {"message": "이메일을 성공적으로 전송했습니다."}
