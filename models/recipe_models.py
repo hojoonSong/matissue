@@ -1,5 +1,6 @@
+from datetime import datetime
 from enum import Enum, IntEnum
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, Extra
 from typing import List
 from nanoid import generate
 
@@ -46,16 +47,30 @@ class RecipeBase(BaseModel):
     recipe_ingredients: List[Ingredients]
     recipe_sequence: List[SequenceItem]
     recipe_tip: str
-    recipe_id: str = Field(default_factory=lambda: generate())
-    recipe_view: int = Field(default=0)
-    recipe_like: int = Field(default=0)
-    user_id: str
+
 
 class RecipeCreate(RecipeBase):
     recipe_id: str = Field(default_factory=lambda: generate())
     recipe_view: int = Field(default=0)
-    recipe_like: int = Field(default=0)
     user_id: str
+    user_nickname: str = Field(default='test')
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    recipe_like: int = Field(default=0)
+
+
+class RecipeGetOne(BaseModel):
+    recipe_title: str
+    recipe_thumbnail: str
+    recipe_id: str
+    recipe_view: int
+    user_id: str
+    user_nickname: str
+    created_at: datetime
+    recipe_like: int
+
+
+class RecipeGetMany(BaseModel):
+    recipes: List[RecipeGetOne]
 
 
 class RecipeView(RecipeBase):
