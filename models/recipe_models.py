@@ -50,12 +50,12 @@ class RecipeBase(BaseModel):
 
 
 class RecipeCreate(RecipeBase):
-    recipe_id: str = Field(default_factory=lambda: generate(), exclude=True)
-    recipe_view: int = Field(default=0, exclude=True)
+    recipe_id: str = Field(default_factory=lambda: generate())
+    recipe_view: int = Field(default=0)
     user_id: str
-    user_nickname: str = Field(default='test', exclude=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, exclude=True)
-    recipe_like: int = Field(default=0, exclude=True)
+    user_nickname: str = Field(default='test')
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    recipe_like: int = Field(default=0)
 
 
 class RecipeGetOne(BaseModel):

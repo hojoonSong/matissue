@@ -17,23 +17,21 @@ class RecipeDao:
     # get
 
     async def get_all_recipes(self):
-        result = await self.collection.find({})
+        cursor = self.collection.find({})
+        result = await cursor.to_list(length=None)
         return result
-    #     return result
-    # async def get_all_recipes(self, offset=0, limit=16):
-    #     result = await self.collection.find().skip(offset).limit(limit).to_list(length=None)
-    #     return result
 
     async def get_recipes_by_categories(self, category):
         result = await self.collection.find({"recipe_category": category}).to_list(length=None)
         return result
 
     async def get_recipes_by_popularity(self):
-        results = await self.collection.find({"recipe_like": {"$gte": 80}}).to_list(length=None)
+        results = await self.collection.find({"recipe_like": {"$gte": 1}}).to_list(length=None)
         return results
 
     async def get_recipe_by_recipe_id(self, id):
         result = await self.collection.find({"recipe_id": id}).to_list(length=None)
+        print('daoresult: ', result)
         return result
 
     async def get_recipes_by_user_id(self, user_id):
@@ -83,7 +81,11 @@ class RecipeDao:
     async def update_recipe_like(self, recipe_id: str):
         update_query = {"$inc": {"recipe_like": 1}}
         result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
-        return result.modified_count
+        if result.modified_count > 0:
+            updated_recipe = await self.collection.find_one({"recipe_id": recipe_id})
+            return updated_recipe
+        else:
+            return None
 
      # delete
 
@@ -100,3 +102,9 @@ class RecipeDao:
             return 1  # 문서가 성공적으로 삭제되었을 경우
         else:
             return 0  # 문서 삭제 실패
+
+    #    페이지 네이션
+    #     return result
+    # async def get_all_recipes(self, offset=0, limit=16):
+    #     result = await self.collection.find().skip(offset).limit(limit).to_list(length=None)
+    #     return result
