@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Query
+from fastapi import HTTPException, Path, Query
 from bson import json_util
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import json
-from models.recipe_models import RecipeBase, RecipeCreate, RecipeGetMany, RecipeGetOne
+from models.recipe_models import RecipeBase, RecipeCreate, RecipeGetList, RecipeUpdate
 from dao.recipe_dao import RecipeDao
 from services.recipe_service import RecipeService
 
@@ -18,7 +18,7 @@ db_manager = MongoDBManager()
 collection = db_manager.get_collection("recipes")
 
 
-@router.get("/")
+@router.get("/", response_model=RecipeGetList)
 async def get_all_recipes():
     try:
         recipes = await recipe_service.get_all_recipes()
@@ -28,7 +28,7 @@ async def get_all_recipes():
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
-@router.get("/categories")
+@router.get("/categories", response_model=RecipeGetList)
 async def get_recipes_by_categories(value: str = Query(...)):
     try:
         recipes = await recipe_service.get_recipes_by_categories(value)
@@ -38,7 +38,7 @@ async def get_recipes_by_categories(value: str = Query(...)):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
-@router.get("/search")
+@router.get("/search", response_model=RecipeGetList)
 async def search_recipes_by_title(value: str):
     pipeline = [
         {"$match": {
@@ -60,19 +60,19 @@ async def search_recipes_by_title(value: str):
     return JSONResponse(content=serialized_recipes)
 
 
-@router.get("/popularity", response_model=RecipeGetMany)
+@router.get("/popularity", response_model=RecipeGetList)
 async def get_recipes_by_popularity():
     recipe = await recipe_service.get_recipes_by_popularity()
     return ({"recipes": recipe})
 
 
-@router.get("/user/{user_id}", response_model=RecipeGetMany)
+@router.get("/user/{user_id}", response_model=RecipeGetList)
 async def get_recipes_by_user_id(user_id: str):
     recipe = await recipe_service.get_recipes_by_user_id(user_id)
-    return ({"recipes": recipe})
+    return {"recipes": recipe}
 
 
-@router.get("/{recipe_id}")
+@router.get("/{recipe_id}", response_model=RecipeCreate)
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
     if len(recipe) == 0:
@@ -82,32 +82,34 @@ async def get_recipe_by_recipe_id(recipe_id: str):
         )
     await recipe_service.update_recipe_view(recipe_id)
     serialized_recipes = json.loads(json.dumps(recipe, default=str))
-    return JSONResponse(content=serialized_recipes), 200
+    return JSONResponse(content=serialized_recipes)
 
 
-@router.post("/")
-async def register_recipe(recipe: RecipeCreate):
+@router.post("/", status_code=201)
+async def register_recipe(recipe: RecipeCreate) -> RecipeCreate:
     try:
         result = await recipe_service.register_recipe(recipe)
+        print('result: ', result)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to insert recipe")
-        return {"recipe_id": result['recipe_id']}, 200
+        serialized_recipes = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_recipes)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
-@router.post("/many")
+@router.post("/many", status_code=201)
 async def register_recipes(recipes: List[RecipeCreate]):
     response = await recipe_service.register_recipes(recipes)
-    return response, 200
+    return response, 201
 
 
-@router.delete("/{recipe_id}")
+@router.delete("/{recipe_id}", status_code=204)
 async def delete_recipe(recipe_id: str):
     result = await recipe_service.delete_one_recipe(recipe_id)
     if result == 1:
-        return {"msg": "삭제 성공"}, 204
+        return {"msg": "삭제 성공"}
     else:
         raise HTTPException(
             status_code=404,
@@ -115,22 +117,10 @@ async def delete_recipe(recipe_id: str):
         )
 
 
-@router.delete("/")
-async def delete_all_recipe():
-    result = await recipe_service.delete_all_recipe()
-    if result == 1:
-        return {"msg": "삭제 성공"}, 204
-    else:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Can't delete recipes"
-        )
-
-
 @router.patch("/{recipe_id}")
 async def update_recipe(recipe_id: str, updated_recipe: RecipeBase):
     try:
-        updated_document = await recipe_service.update_recipe(recipe_id, updated_recipe)
+        updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
         return JSONResponse(content=updated_document_dict)
@@ -146,7 +136,7 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeBase):
         )
 
 
-@router.patch("/{recipe_id}/like")
+@router.patch("/{recipe_id}/like", status_code=201)
 async def update_like(recipe_id: str):
     try:
         recipe = await recipe_service.update_recipe_like(recipe_id)
@@ -158,8 +148,11 @@ async def update_like(recipe_id: str):
             )
         serialized_recipe = json.loads(json.dumps(recipe, default=str))
         return serialized_recipe
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+    except HTTPException as e:
+        raise HTTPException(
+            status_code=e.status_code,
+            detail=str(e.detail)
+        )
 
 # 페이지네이션
 # @router.get("/")
@@ -174,3 +167,16 @@ async def update_like(recipe_id: str):
 #         return JSONResponse(content=serialized_recipes)
 #     except Exception as e:
 #         raise HTTPException(status_code=500, detail=str(e))
+
+
+# 위험
+# @router.delete("/", status_code=204)
+# async def delete_all_recipe():
+#     result = await recipe_service.delete_all_recipe()
+#     if result == 1:
+#         return {"msg": "삭제 성공"}
+#     else:
+#         raise HTTPException(
+#             status_code=404,
+#             detail=f"Can't delete recipes"
+#         )
