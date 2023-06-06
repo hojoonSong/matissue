@@ -89,7 +89,6 @@ async def get_recipe_by_recipe_id(recipe_id: str):
 async def register_recipe(recipe: RecipeCreate) -> RecipeCreate:
     try:
         result = await recipe_service.register_recipe(recipe)
-        print('result: ', result)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to insert recipe")
@@ -121,7 +120,6 @@ async def delete_recipe(recipe_id: str):
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
     try:
         existing_recipe = await recipe_dao.get_recipe_to_update_recipe(recipe_id)
-        print('existing_recipe: ', existing_recipe)
         if existing_recipe is None:
             raise HTTPException(
                 status_code=404,
@@ -134,7 +132,6 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
         updated_recipe.created_at = existing_recipe.created_at
         updated_recipe.recipe_like = existing_recipe.recipe_like
         updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
-        print('updated_document: ', updated_document)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
 
@@ -159,7 +156,6 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
 async def update_like(recipe_id: str):
     try:
         recipe = await recipe_service.update_recipe_like(recipe_id)
-        print('contrecipe: ', recipe)
         if recipe is None:
             raise HTTPException(
                 status_code=404,
