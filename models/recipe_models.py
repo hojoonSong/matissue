@@ -169,19 +169,14 @@ class RecipeUpdate(BaseModel):
     recipe_info: Optional[Information]
     recipe_ingredients: Optional[List[Ingredients]]
     recipe_sequence: Optional[List[SequenceItem]]
-    recipe_category: Optional[Category]
-    recipe_info: Optional[Information]
-    recipe_ingredients: Optional[List[Ingredients]]
-    recipe_sequence: Optional[List[SequenceItem]]
     recipe_tip: Optional[str]
-    user_nickname: Optional[str] = Field(default='test', const=True)
-    recipe_id: Optional[str] = Field(
-        default_factory=lambda: generate(), const=True)
-    recipe_view: Optional[int] = Field(default=0, const=True)
-    user_id: Optional[str] = Field(const=True)
-    created_at: Optional[datetime] = Field(
-        default_factory=datetime.utcnow, const=True)
-    recipe_like: Optional[int] = Field(default=0, const=True)
+    user_nickname: Optional[str] = Field(default='test')
+    recipe_id: str = Field(default_factory=lambda: generate(), const=True)
+    recipe_view: int = Field(default=0, const=True)
+    user_id: str = Field(default='test', const=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
+    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    recipe_like: int = Field(default=0, const=True)
 
     class Config:
         schema_extra = {
