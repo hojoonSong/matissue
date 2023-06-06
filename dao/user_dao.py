@@ -1,6 +1,6 @@
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.user_models import UserInDB
+from models.user_models import UserInDB, UserIn
 
 settings = get_settings()
 
@@ -40,3 +40,8 @@ class UserDao:
         async for user_doc in user_docs:
             users.append(UserInDB(**user_doc))
         return users
+
+
+def get_user_dao() -> UserDao:
+    db_manager = MongoDBManager()
+    return UserDao(db_manager)

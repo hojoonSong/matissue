@@ -1,21 +1,33 @@
 from services.user_service import UserService
-from dao.user_dao import UserDao
+from dao.user_dao import UserDao, get_user_dao
 from models.user_models import UserUpdate, UserIn, UserOut
 from models.response_models import LoginResponse, LoginRequest, MessageResponse, DeleteRequest
-from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from utils.session_manager import SessionManager, get_current_session
 from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
 from utils.email_manager import send_email
+import json
 
 router = APIRouter()
 user_dao = UserDao()
 user_service = UserService(user_dao)
 
 
-@router.post("/", response_model=UserOut, status_code=201, responses=common_responses)
+
+@router.post("/", status_code=201, responses=common_responses)
 async def create_user(user: UserIn, session_manager: SessionManager = Depends(SessionManager)):
+    existing_user = await user_dao.get_user_by_id(user.user_id)
+    if existing_user:
+            raise HTTPException(
+    status_code=404, detail=f"사용자 아이디 '{user.user_id}'은 사용할 수 없습니다.")
+
+    exiting_email = await user_dao.get_user_by_email(user.email)
+    if exiting_email:
+        raise HTTPException(
+    status_code=404, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
+
+
     verification_code = session_manager.create_verification_code(user.email)
     verification_link = f"https://localhost:8000/api/verify?code={verification_code}"
 
@@ -27,14 +39,9 @@ async def create_user(user: UserIn, session_manager: SessionManager = Depends(Se
     if "error" in result:
         raise HTTPException(status_code=500, detail="이메일 전송 실패")
 
-    if session_manager.verify_email(verification_code):
-        created_user = await user_service.create_user(user)
-        if not created_user:
-            raise HTTPException(status_code=400, detail="계정을 생성할 수 없습니다.")
-        return {"user_id": user.user_id, "username": user.username, "email": user.email, "birth_date": user.birth_date, "img": user.img, "created_at": datetime.now()}
-    else:
-        raise HTTPException(
-            status_code=400, detail="이메일 인증 코드가 만료되었거나 잘못되었습니다.")
+    session_manager.save_user_info(user)
+
+    return {"message": "인증 이메일이 발송되었습니다. 이메일을 확인해 주세요."}
 
 
 @router.put("/", response_model=UserOut, dependencies=[Depends(get_current_session)], responses=common_responses)

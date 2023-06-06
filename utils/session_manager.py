@@ -1,4 +1,5 @@
 from fastapi import Depends, HTTPException, status, Header, Request
+from dao.user_dao import UserIn
 from pydantic import BaseModel
 from typing import Optional
 import uuid
@@ -39,12 +40,27 @@ class SessionManager:
         redis_client.set(verification_code, email, ex=86400)
         return verification_code
 
-    def verify_email(self, code: str):
+    @staticmethod
+    def verify_email(code: str):
         email = redis_client.get(code)
         if email is None:
             return False
         redis_client.delete(code)
         return email
+
+    @staticmethod
+    def save_user_info(user: UserIn):
+        user_json = user.json()
+        redis_client.set(user.email, user_json.encode(), ex=86400)
+
+    @staticmethod
+    def get_user_info(email: str) -> Optional[UserIn]:
+        user_json = redis_client.get(email)
+        if user_json is None:
+            return None
+        return UserIn.parse_raw(user_json.decode())
+
+
 
 
 def get_current_session(request: Request) -> str:

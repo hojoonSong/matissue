@@ -23,23 +23,14 @@ class UserService:
         self.session_manager = SessionManager()
         self.response = Response()
 
-    async def create_user(self, user: UserIn):
-        existing_user = await self.user_dao.get_user_by_id(user.user_id)
-        if existing_user:
-            raise HTTPException(
-                status_code=404, detail=f"사용자 아이디 '{user.user_id}'은 사용할 수 없습니다.")
-
-        exiting_email = await self.user_dao.get_user_by_email(user.email)
-        if exiting_email:
-            raise HTTPException(
-                status_code=404, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
-
+    @classmethod
+    async def create_user(cls, user: UserIn):
         user_in_db = UserInDB(
             **user.dict(exclude={'password'}),
             hashed_password=Hasher.get_hashed_password(user.password),
             created_at=datetime.now()
         )
-        return await self.user_dao.create_user_in_db(user_in_db)
+        return await cls.user_dao.create_user_in_db(user_in_db)
 
     async def delete_user(self, user_id: str, password: str, session_id: str):
         user = await self.user_dao.get_user_by_id(user_id)
