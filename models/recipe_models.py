@@ -185,8 +185,8 @@ class RecipeUpdate(BaseModel):
 
     class Config:
         schema_extra = {
-            "example":  {
-                "recipe_title": "수정테스트)삼겹살",
+            "example":    {
+                "recipe_title": "수정)삼겹살",
                 "recipe_thumbnail": "https://eliceproject.s3.ap-northeast-2.amazonaws.com/20230602073742667_dino.png",
                 "recipe_video": "youtube.com/watch?v=AdMgVkp4OXI",
                 "recipe_description": "수정테스트)배고프네요",

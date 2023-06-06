@@ -121,6 +121,7 @@ async def delete_recipe(recipe_id: str):
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
     try:
         existing_recipe = await recipe_dao.get_recipe_to_update_recipe(recipe_id)
+        print('existing_recipe: ', existing_recipe)
         if existing_recipe is None:
             raise HTTPException(
                 status_code=404,
