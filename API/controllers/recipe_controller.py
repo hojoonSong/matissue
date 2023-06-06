@@ -81,7 +81,8 @@ async def get_recipe_by_recipe_id(recipe_id: str):
             detail=f"Recipe with id {recipe_id} not found"
         )
     await recipe_service.update_recipe_view(recipe_id)
-    return {"recipe": recipe}
+    serialized_recipes = json.loads(json.dumps(recipe, default=str))
+    return JSONResponse(content=serialized_recipes), 200
 
 
 @router.post("/", status_code=201)
@@ -119,7 +120,7 @@ async def delete_recipe(recipe_id: str):
 @router.patch("/{recipe_id}")
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
     try:
-        existing_recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
+        existing_recipe = await recipe_dao.get_recipe_to_update_recipe(recipe_id)
         if existing_recipe is None:
             raise HTTPException(
                 status_code=404,
@@ -145,11 +146,11 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
             status_code=e.status_code,
             detail=str(e.detail)
         )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+    # except Exception as e:
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail=str(e)
+    #     )
 
 
 @router.patch("/{recipe_id}/like", status_code=201)

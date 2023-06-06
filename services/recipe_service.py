@@ -36,6 +36,9 @@ class RecipeService:
         result = await self.recipe_dao.get_recipes_by_user_id(user_id)
         return result
 
+    async def get_recipe_to_update_recipe(self, recipe_id):
+        result = await self.recipe_dao.get_recipe_to_update_recipe(recipe_id)
+        return result
      # post
 
     async def register_recipe(self, recipe: RecipeCreate):
