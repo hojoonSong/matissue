@@ -169,27 +169,22 @@ class RecipeUpdate(BaseModel):
     recipe_info: Optional[Information]
     recipe_ingredients: Optional[List[Ingredients]]
     recipe_sequence: Optional[List[SequenceItem]]
-    recipe_category: Optional[Category]
-    recipe_info: Optional[Information]
-    recipe_ingredients: Optional[List[Ingredients]]
-    recipe_sequence: Optional[List[SequenceItem]]
     recipe_tip: Optional[str]
-    user_nickname: Optional[str] = Field(default='test', const=True)
-    recipe_id: Optional[str] = Field(
-        default_factory=lambda: generate(), const=True)
-    recipe_view: Optional[int] = Field(default=0, const=True)
-    user_id: Optional[str] = Field(const=True)
-    created_at: Optional[datetime] = Field(
-        default_factory=datetime.utcnow, const=True)
-    recipe_like: Optional[int] = Field(default=0, const=True)
+    user_nickname: Optional[str] = Field(default='test')
+    recipe_id: str = Field(default_factory=lambda: generate(), const=True)
+    recipe_view: int = Field(default=0, const=True)
+    user_id: str = Field(default='test', const=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
+    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    recipe_like: int = Field(default=0, const=True)
 
     class Config:
         schema_extra = {
-            "example":  {
-                "recipe_title": "수정테스트)삼겹살",
+            "example":    {
+                "recipe_title": "수정테스트",
                 "recipe_thumbnail": "https://eliceproject.s3.ap-northeast-2.amazonaws.com/20230602073742667_dino.png",
                 "recipe_video": "youtube.com/watch?v=AdMgVkp4OXI",
-                "recipe_description": "수정테스트)배고프네요",
+                "recipe_description": "수정테스트",
                 "recipe_category": "korean",
                 "recipe_info": {
                     "serving": 3,
@@ -198,8 +193,8 @@ class RecipeUpdate(BaseModel):
                 },
                 "recipe_ingredients": [
                     {
-                        "name": "수정테스트)삼겹살",
-                        "amount": "1 근"
+                        "name": "수정테스트",
+                        "amount": "수정테스트"
                     },
                     {
                         "name": "소금",
@@ -210,20 +205,20 @@ class RecipeUpdate(BaseModel):
                     {
                         "step": 1,
                         "picture": "https://eliceproject.s3.ap-northeast-2.amazonaws.com/20230602073742667_dino.png",
-                        "description": "수정테스트)불판에 고기를 올린다"
+                        "description": "수정테스트)설명"
                     },
                     {
                         "step": 2,
                         "picture": "https://eliceproject.s3.ap-northeast-2.amazonaws.com/20230602073742667_dino.png",
-                        "description": "수정테스트)굽는다"
+                        "description": "수정테스트)설명"
                     },
                     {
                         "step": 3,
                         "picture": "https://eliceproject.s3.ap-northeast-2.amazonaws.com/20230602073742667_dino.png",
-                        "description": "수정테스트)맛있게 먹는다"
+                        "description": "수정테스트)설명"
                     }
                 ],
-                "recipe_tip": "수정테스트)노릇 노릇 삼겹살은 못 참죠ㅎㅎ",
+                "recipe_tip": "수정테스트)팁",
                 "user_nickname": "test"
             }
         }

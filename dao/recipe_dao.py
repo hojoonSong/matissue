@@ -33,6 +33,12 @@ class RecipeDao:
         result = await self.collection.find_one({"recipe_id": id})
         if result is None:
             return None
+        return result
+
+    async def get_recipe_to_update_recipe(self, id):
+        result = await self.collection.find_one({"recipe_id": id})
+        if result is None:
+            return None
         return RecipeCreate(**result)
 
     async def get_recipes_by_user_id(self, user_id):
