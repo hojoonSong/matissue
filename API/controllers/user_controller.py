@@ -4,7 +4,7 @@ from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
 from models.response_models import LoginResponse, LoginRequest, MessageResponse, FollowsResponse
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from typing import List
-from utils.session_manager import SessionManager, get_current_session, get_current_user
+from utils.session_manager import SessionManager, get_current_session
 from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
 from utils.email_manager import send_email
@@ -83,9 +83,14 @@ async def login(user: LoginRequest, response: Response):
 @router.post("/logout", response_model=MessageResponse, dependencies=[Depends(get_current_session)], responses=common_responses)
 async def logout(request: Request, response: Response):
     session_id = request.cookies.get("session-id")
+    if session_id is None:
+        raise HTTPException(status_code=400, detail="세션 ID를 찾을 수 없습니다")
+
     result = await user_service.logout(session_id, response)
+
     if result['detail'] == '성공적으로 로그아웃되었습니다.':
         return MessageResponse(message=result["detail"])
+
     raise HTTPException(status_code=400, detail="로그아웃에 실패했습니다.")
 
 
