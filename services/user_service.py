@@ -59,9 +59,9 @@ class UserService:
         hashed_password = await Hasher.get_hashed_password(user.password)
         if user.password:
             user_in_db = UserInDB(
-            **user.dict(exclude={'password'}),
-            hashed_password=hashed_password,
-            created_at=datetime.now()
+                **user.dict(exclude={'password'}),
+                hashed_password=hashed_password,
+                created_at=datetime.now()
             )
         else:
             user_in_db = UserInDB(
@@ -96,10 +96,15 @@ class UserService:
         return {"session_id": session_id}
 
     async def logout(self, session_id: str, response: Response):
+        if session_id is None:
+            raise HTTPException(status_code=400, detail="세션 ID를 찾을 수 없습니다.")
+
         response.delete_cookie(key="session_id")
-        session = await SessionManager.delete_session(session_id)
+        session = await self.session_manager.delete_session(session_id)
+
         if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
+            return {"detail": "세션 ID가 없거나 이미 로그아웃되었습니다."}
+
         return {"detail": "성공적으로 로그아웃되었습니다."}
 
     async def modify_subscribe_user(self, current_user: str, follow_user_id: str, subscribe: bool) -> None:
