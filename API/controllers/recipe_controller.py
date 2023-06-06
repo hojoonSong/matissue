@@ -45,6 +45,7 @@ async def search_recipes_by_title(value: str):
             "$or": [
                 {"recipe_title": {"$regex": value, "$options": "i"}},
                 {"recipe_category": {"$regex": value, "$options": "i"}},
+                {"recipe_description": {"$regex": value, "$options": "i"}},
                 {"recipe_info": {"$regex": value, "$options": "i"}},
                 {"recipe_ingredients.name": {"$regex": value, "$options": "i"}}
             ]
@@ -82,7 +83,7 @@ async def get_recipe_by_recipe_id(recipe_id: str):
         )
     await recipe_service.update_recipe_view(recipe_id)
     serialized_recipes = json.loads(json.dumps(recipe, default=str))
-    return JSONResponse(content=serialized_recipes), 200
+    return JSONResponse(content=serialized_recipes, status_code=201)
 
 
 @router.post("/", status_code=201)
@@ -101,7 +102,7 @@ async def register_recipe(recipe: RecipeCreate) -> RecipeCreate:
 @router.post("/many", status_code=201)
 async def register_recipes(recipes: List[RecipeCreate]):
     response = await recipe_service.register_recipes(recipes)
-    return response, 201
+    return JSONResponse(content=response, status_code=201)
 
 
 @router.delete("/{recipe_id}", status_code=204)
@@ -134,22 +135,16 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
         updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
-
         updated_document_dict["created_at"] = updated_document_dict["created_at"].isoformat(
         )
         serialized_recipe = json.loads(
             json.dumps(updated_document_dict, default=str))
-        return JSONResponse(content=serialized_recipe)
+        return JSONResponse(content=serialized_recipe, status_code=201)
     except HTTPException as e:
         raise HTTPException(
             status_code=e.status_code,
             detail=str(e.detail)
         )
-    # except Exception as e:
-    #     raise HTTPException(
-    #         status_code=500,
-    #         detail=str(e)
-    #     )
 
 
 @router.patch("/{recipe_id}/like", status_code=201)
@@ -162,7 +157,7 @@ async def update_like(recipe_id: str):
                 detail=f"Recipe with id {recipe_id} not found"
             )
         serialized_recipe = json.loads(json.dumps(recipe, default=str))
-        return serialized_recipe
+        return JSONResponse(content=serialized_recipe), 200
     except HTTPException as e:
         raise HTTPException(
             status_code=e.status_code,
