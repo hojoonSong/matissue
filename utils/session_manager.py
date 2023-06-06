@@ -43,24 +43,24 @@ class SessionManager:
     @staticmethod
     def verify_email(code: str):
         email = redis_client.get(code)
+        print(email)
         if email is None:
             return False
-        redis_client.delete(code)
+        # redis_client.delete(code)
         return email
 
     @staticmethod
     def save_user_info(user: UserIn):
         user_json = user.json()
-        redis_client.set(user.email, user_json.encode(), ex=86400)
+        print(user_json)
+        redis_client.set(user.email, user_json, ex=86400)
 
     @staticmethod
     def get_user_info(email: str) -> Optional[UserIn]:
         user_json = redis_client.get(email)
         if user_json is None:
             return None
-        return UserIn.parse_raw(user_json.decode())
-
-
+        return UserIn.parse_raw(user_json)
 
 
 def get_current_session(request: Request) -> str:

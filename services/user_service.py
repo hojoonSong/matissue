@@ -23,7 +23,6 @@ class UserService:
         self.session_manager = SessionManager()
         self.response = Response()
 
-    @classmethod
     async def create_user(cls, user: UserIn):
         user_in_db = UserInDB(
             **user.dict(exclude={'password'}),
