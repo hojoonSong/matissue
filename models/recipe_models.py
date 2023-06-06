@@ -260,14 +260,21 @@ class RecipeView(RecipeBase):
 class RecipeLike(RecipeBase):
     recipe_like: int
 
-# class RecipeList(RecipeBase):
-#     recipe_id: str = Field(default_factory=lambda: generate())
-#     recipe_title: str
-#     recipe_thumbnail: str
-#     recipe_like: int = Field(default=0)
-#     user_id: str
+
+class CommentBase(BaseModel):
+    comment_author: str = Field(default='test')
+    comment_text: str
+    comment_like: int = Field(default=0)
+    comment_id: str = Field(default_factory=lambda: generate(), const=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
+    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    comment_parent: str
 
 
-# class RecipeSearchByCategory(RecipeBase):
-# class RecipeSearchByTime(RecipeBase):
-# class RecipeSearchByIngredient(RecipeBase):
+class CommentIn(BaseModel):
+    comment_author: str = Field(default='test')
+    comment_text: str
+
+
+class CommentsList(BaseModel):
+    recipes: List[CommentBase]
