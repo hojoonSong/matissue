@@ -133,6 +133,7 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
         updated_recipe.created_at = existing_recipe.created_at
         updated_recipe.recipe_like = existing_recipe.recipe_like
         updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
+        print('updated_document: ', updated_document)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
 
