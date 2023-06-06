@@ -9,8 +9,8 @@ class UserBase(BaseModel):
     user_id: str
     username: str
     email: EmailStr
-    birth_date: Optional[str]
-    img: str
+    birth_date: str
+    img: Optional[str] = None
     follows: Optional[List[str]] = []
 
 

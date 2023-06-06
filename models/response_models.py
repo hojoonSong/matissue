@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 
 class LoginResponse(BaseModel):
@@ -25,3 +26,7 @@ class MessageResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
+
+
+class FollowsResponse(BaseModel):
+    follows: List[str]

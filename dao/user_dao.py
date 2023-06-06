@@ -54,11 +54,14 @@ class UserDao:
                 raise HTTPException(status_code=409, detail="이미 구독 중입니다")
             else:
                 user.follows.append(follow_user_id)
+
         else:
             if follow_user_id in user.follows:
                 user.follows.remove(follow_user_id)
             else:
                 raise HTTPException(status_code=409, detail="구독을 취소할 수 없습니다.")
+
+        await self.update_user_in_db(user)
 
     async def get_followers(self, user_id: str):
         follower_docs = self.collection.find({"follows": user_id})
@@ -66,8 +69,6 @@ class UserDao:
         async for follower_doc in follower_docs:
             followers.append(UserInDB(**follower_doc))
         return followers
-
-
 
 
 
