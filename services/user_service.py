@@ -44,8 +44,8 @@ class UserService:
         self.session_manager.delete_session(session_id)
         return await self.user_dao.delete_user(user_id)
 
-    async def update_user(self, user: UserInDB):
-        check_user_permissions(user.user_id)
+    async def update_user(self, user: UserInDB, current_user):
+        check_user_permissions(user.user_id, current_user)
         existing_user = await self.user_dao.get_user_by_id(user.user_id)
         if not existing_user:
             raise HTTPException(
