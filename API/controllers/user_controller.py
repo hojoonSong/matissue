@@ -1,9 +1,10 @@
 from services.user_service import UserService
-from dao.user_dao import UserDao, get_user_dao
-from models.user_models import UserUpdate, UserIn, UserOut
+from dao.user_dao import UserDao
+from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
 from models.response_models import LoginResponse, LoginRequest, MessageResponse, DeleteRequest
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
-from utils.session_manager import SessionManager, get_current_session
+from typing import List
+from utils.session_manager import SessionManager, get_current_session, get_current_user
 from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
 from utils.email_manager import send_email
@@ -129,3 +130,25 @@ async def get_users(
         "total_items": total_items,
         "users": users
     }
+
+@router.post("/subscription/{follow_user_id}", dependencies=[Depends(get_current_session)], responses=common_responses)
+async def toggle_subscription(follow_user_id: str, subscribe: bool = True, current_user: str = Depends(get_current_session)):
+    if current_user == follow_user_id:
+        raise HTTPException(status_code=400, detail="본인을 구독 할 수 없습니다.")
+    try:
+        await user_service.modify_subscribe_user(current_user, follow_user_id, subscribe)
+        if subscribe:
+            return {"message": "구독 완료"}
+        else:
+            return {"message": "구독 취소 완료"}
+    except HTTPException as e:
+        if e.status_code == 409:
+            raise HTTPException(status_code=400, detail="이미 구독 중입니다.")
+        else:
+            raise
+
+@router.get("/{user_id}/followers", response_model=List[str], responses=common_responses)
+async def get_followers(user_id: str):
+    return await user_service.get_followers(user_id)
+
+

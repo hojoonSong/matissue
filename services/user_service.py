@@ -101,3 +101,9 @@ class UserService:
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
         return {"detail": "성공적으로 로그아웃되었습니다."}
+
+    async def modify_subscribe_user(self, current_user: str, follow_user_id: str, subscribe: bool) -> None:
+        await self.user_dao.modify_subscription(follow_user_id, current_user, subscribe)
+
+    async def get_followers(self, user_id: str):
+        return await self.user_dao.get_followers(user_id)

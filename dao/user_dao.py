@@ -1,6 +1,7 @@
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.user_models import UserInDB, UserIn
+from models.user_models import UserInDB
+from fastapi import HTTPException
 
 settings = get_settings()
 
@@ -40,6 +41,34 @@ class UserDao:
         async for user_doc in user_docs:
             users.append(UserInDB(**user_doc))
         return users
+
+    async def modify_subscription(self, current_user: str, follow_user_id: str, subscribe: bool) -> None:
+        user = await self.get_user_by_id(current_user)
+        follow_user = await self.get_user_by_id(follow_user_id)
+
+        if not user or not follow_user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+        if subscribe:
+            if follow_user_id in user.follows:
+                raise HTTPException(status_code=409, detail="이미 구독 중입니다")
+            else:
+                user.follows.append(follow_user_id)
+        else:
+            if follow_user_id in user.follows:
+                user.follows.remove(follow_user_id)
+            else:
+                raise HTTPException(status_code=409, detail="구독을 취소할 수 없습니다.")
+
+    async def get_followers(self, user_id: str):
+        follower_docs = self.collection.find({"follows": user_id})
+        followers = []
+        async for follower_doc in follower_docs:
+            followers.append(UserInDB(**follower_doc))
+        return followers
+
+
+
 
 
 def get_user_dao() -> UserDao:

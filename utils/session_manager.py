@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status, Header, Request
-from dao.user_dao import UserIn
+from models.user_models import UserIn
 from pydantic import BaseModel
 from typing import Optional
 import uuid
@@ -74,13 +74,14 @@ def get_current_session(request: Request) -> str:
     return current_user
 
 
-async def get_current_user(session: Session = Depends(), session_manager: SessionManager = Depends(SessionManager)):
-    if session.id is None:
+async def get_current_user(request: Request, session_manager: SessionManager = Depends(SessionManager)):
+    session_id = request.cookies.get("session-id")
+    if session_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Session ID가 없습니다."
         )
-    user_id = session_manager.get_session(session.id)
+    user_id = session_manager.get_session(session_id)
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
