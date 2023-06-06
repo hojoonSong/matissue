@@ -24,9 +24,10 @@ class UserService:
         self.response = Response()
 
     async def create_user(cls, user: UserIn):
+        hashed_password = await Hasher.get_hashed_password(user.password)
         user_in_db = UserInDB(
             **user.dict(exclude={'password'}),
-            hashed_password=Hasher.get_hashed_password(user.password),
+            hashed_password=hashed_password,
             created_at=datetime.now()
         )
         return await cls.user_dao.create_user_in_db(user_in_db)
@@ -55,11 +56,19 @@ class UserService:
             raise HTTPException(
                 status_code=400, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
 
-        user_in_db = UserInDB(
+        hashed_password = await Hasher.get_hashed_password(user.password)
+        if user.password:
+            user_in_db = UserInDB(
             **user.dict(exclude={'password'}),
-            hashed_password=Hasher.get_hashed_password(
-                user.password) if user.password else existing_user.hashed_password,
-            created_at=datetime.now())
+            hashed_password=hashed_password,
+            created_at=datetime.now()
+            )
+        else:
+            user_in_db = UserInDB(
+                **user.dict(exclude={'password'}),
+                hashed_password=existing_user.hashed_password,
+                created_at=datetime.now()
+            )
 
         await self.user_dao.update_user_in_db(user_in_db)
         return True
