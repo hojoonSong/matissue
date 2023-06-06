@@ -71,7 +71,6 @@ class UserDao:
         return followers
 
 
-
 def get_user_dao() -> UserDao:
     db_manager = MongoDBManager()
     return UserDao(db_manager)

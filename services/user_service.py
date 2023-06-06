@@ -59,9 +59,9 @@ class UserService:
         hashed_password = await Hasher.get_hashed_password(user.password)
         if user.password:
             user_in_db = UserInDB(
-            **user.dict(exclude={'password'}),
-            hashed_password=hashed_password,
-            created_at=datetime.now()
+                **user.dict(exclude={'password'}),
+                hashed_password=hashed_password,
+                created_at=datetime.now()
             )
         else:
             user_in_db = UserInDB(

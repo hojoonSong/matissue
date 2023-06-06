@@ -14,19 +14,17 @@ user_dao = UserDao()
 user_service = UserService(user_dao)
 
 
-
 @router.post("/", status_code=201, responses=common_responses)
 async def create_user(user: UserIn, session_manager: SessionManager = Depends(SessionManager)):
     existing_user = await user_dao.get_user_by_id(user.user_id)
     if existing_user:
-            raise HTTPException(
-    status_code=404, detail=f"사용자 아이디 '{user.user_id}'은 사용할 수 없습니다.")
+        raise HTTPException(
+            status_code=404, detail=f"사용자 아이디 '{user.user_id}'은 사용할 수 없습니다.")
 
     exiting_email = await user_dao.get_user_by_email(user.email)
     if exiting_email:
         raise HTTPException(
-    status_code=404, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
-
+            status_code=404, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
 
     verification_code = session_manager.create_verification_code(user.email)
     verification_link = f"https://localhost:8000/api/verify?code={verification_code}"
@@ -132,6 +130,7 @@ async def get_users(
         "users": users
     }
 
+
 @router.post("/subscription/{follow_user_id}", dependencies=[Depends(get_current_session)], responses=common_responses)
 async def toggle_subscription(follow_user_id: str, subscribe: bool = True, current_user: str = Depends(get_current_session)):
     if current_user == follow_user_id:
@@ -148,8 +147,7 @@ async def toggle_subscription(follow_user_id: str, subscribe: bool = True, curre
         else:
             raise
 
+
 @router.get("/{user_id}/followers", response_model=List[FollowsResponse], responses=common_responses)
 async def get_followers(user_id: str):
     return await user_service.get_followers(user_id)
-
-

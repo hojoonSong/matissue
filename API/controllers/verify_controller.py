@@ -8,6 +8,7 @@ from datetime import datetime
 router = APIRouter()
 session_manager = SessionManager()
 
+
 @router.get("/verify", status_code=200)
 async def verify(code: str = Query(...), session_manager: SessionManager = Depends(SessionManager), user_dao: UserDao = Depends(get_user_dao)):
     email = session_manager.verify_email(code)
