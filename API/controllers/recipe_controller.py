@@ -72,17 +72,16 @@ async def get_recipes_by_user_id(user_id: str):
     return {"recipes": recipe}
 
 
-@router.get("/{recipe_id}", response_model=RecipeCreate)
+@router.get("/{recipe_id}")
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
-    if len(recipe) == 0:
+    if recipe == None:
         raise HTTPException(
             status_code=404,
             detail=f"Recipe with id {recipe_id} not found"
         )
     await recipe_service.update_recipe_view(recipe_id)
-    serialized_recipes = json.loads(json.dumps(recipe, default=str))
-    return JSONResponse(content=serialized_recipes)
+    return {"recipe": recipe}
 
 
 @router.post("/", status_code=201)
@@ -120,8 +119,7 @@ async def delete_recipe(recipe_id: str):
 @router.patch("/{recipe_id}")
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
     try:
-        existing_recipe = await recipe_dao.get_recipe_by_recipe_id(recipe_id)
-        print('existing_recipe: ', existing_recipe)
+        existing_recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
         if existing_recipe is None:
             raise HTTPException(
                 status_code=404,
@@ -134,7 +132,6 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
         updated_recipe.created_at = existing_recipe.created_at
         updated_recipe.recipe_like = existing_recipe.recipe_like
         updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
-        print('updated_document: ', updated_document)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
 
@@ -142,8 +139,7 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
         )
         serialized_recipe = json.loads(
             json.dumps(updated_document_dict, default=str))
-
-        return JSONResponse(content=updated_document_dict)
+        return JSONResponse(content=serialized_recipe)
     except HTTPException as e:
         raise HTTPException(
             status_code=e.status_code,

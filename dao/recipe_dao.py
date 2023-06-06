@@ -26,7 +26,7 @@ class RecipeDao:
         return result
 
     async def get_recipes_by_popularity(self):
-        results = await self.collection.find({"recipe_like": {"$gte": 1}}).to_list(length=None)
+        results = await self.collection.find({"recipe_like": {"$gte": 10}}).to_list(length=None)
         return results
 
     async def get_recipe_by_recipe_id(self, id):

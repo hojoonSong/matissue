@@ -16,11 +16,9 @@ class RecipeService:
     def __init__(self, recipe_dao: RecipeDao):
         self.recipe_dao = recipe_dao
 
-# ok
     async def get_all_recipes(self):
         result = await self.recipe_dao.get_all_recipes()
         return result
-# ok
 
     async def get_recipes_by_categories(self, category):
         result = await self.recipe_dao.get_recipes_by_categories(category)
@@ -29,17 +27,13 @@ class RecipeService:
     async def get_recipes_by_popularity(self):
         results = await self.recipe_dao.get_recipes_by_popularity()
         return results
-# ok
 
     async def get_recipe_by_recipe_id(self, recipe_id):
         result = await self.recipe_dao.get_recipe_by_recipe_id(recipe_id)
-        print('serviceresult: ', result)
         return result
-# ok
 
     async def get_recipes_by_user_id(self, user_id):
         result = await self.recipe_dao.get_recipes_by_user_id(user_id)
-        print('serviceresult: ', result)
         return result
 
      # post
@@ -48,7 +42,6 @@ class RecipeService:
         result = await self.recipe_dao.register_recipe(recipe)
         print('serviceresult: ', result)
         return result
-    # ok
 
     async def register_recipes(self, recipes: List[RecipeCreate]):
         result = await self.recipe_dao.register_recipes(recipes)
@@ -78,8 +71,6 @@ class RecipeService:
         result = await self.recipe_dao.delete_one_recipe(recipe_id)
         print('serviceresult: ', result)
         return result
-
-    # ok
 
     async def delete_all_recipe(self):
         result = await self.recipe_dao.delete_all_recipe()
