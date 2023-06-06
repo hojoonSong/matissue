@@ -165,17 +165,19 @@ class RecipeUpdate(BaseModel):
     recipe_thumbnail: Optional[str]
     recipe_video: Optional[str]
     recipe_description: Optional[str]
-    recipe_category: Category
-    recipe_info: Information
-    recipe_ingredients: List[Ingredients]
-    recipe_sequence: List[SequenceItem]
+    recipe_category: Optional[Category]
+    recipe_info: Optional[Information]
+    recipe_ingredients: Optional[List[Ingredients]]
+    recipe_sequence: Optional[List[SequenceItem]]
     recipe_tip: Optional[str]
-    # user_nickname: Optional[str] = Field(default='test')
-    # recipe_id: Optional[str] = Field(default_factory=lambda: generate())
-    # recipe_view: Optional[str] = Field(default=0)
-    # user_id: str
-    # created_at: datetime = Field(default_factory=datetime.utcnow)
-    # recipe_like: Optional[str] = Field(default=0)
+    user_nickname: Optional[str] = Field(default='test', const=True)
+    recipe_id: Optional[str] = Field(
+        default_factory=lambda: generate(), const=True)
+    recipe_view: Optional[int] = Field(default=0, const=True)
+    user_id: Optional[str] = Field(const=True)
+    created_at: Optional[datetime] = Field(
+        default_factory=datetime.utcnow, const=True)
+    recipe_like: Optional[int] = Field(default=0, const=True)
 
 
 class RecipeGetItem(BaseModel):

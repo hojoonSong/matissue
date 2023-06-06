@@ -30,9 +30,10 @@ class RecipeDao:
         return results
 
     async def get_recipe_by_recipe_id(self, id):
-        result = await self.collection.find({"recipe_id": id}).to_list(length=None)
-        print('daoresult: ', result)
-        return result
+        result = await self.collection.find_one({"recipe_id": id})
+        if result is None:
+            return None
+        return RecipeCreate(**result)
 
     async def get_recipes_by_user_id(self, user_id):
         result = await self.collection.find({"user_id": user_id}).to_list(length=None)

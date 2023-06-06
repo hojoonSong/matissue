@@ -118,11 +118,31 @@ async def delete_recipe(recipe_id: str):
 
 
 @router.patch("/{recipe_id}")
-async def update_recipe(recipe_id: str, updated_recipe: RecipeBase):
+async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
     try:
+        existing_recipe = await recipe_dao.get_recipe_by_recipe_id(recipe_id)
+        print('existing_recipe: ', existing_recipe)
+        if existing_recipe is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Recipe with id {recipe_id} not found"
+            )
+        # 원래 가지고 있는 값으로 업데이트할 필드들 설정
+        updated_recipe.recipe_id = existing_recipe.recipe_id
+        updated_recipe.recipe_view = existing_recipe.recipe_view
+        updated_recipe.user_id = existing_recipe.user_id
+        updated_recipe.created_at = existing_recipe.created_at
+        updated_recipe.recipe_like = existing_recipe.recipe_like
         updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
+        print('updated_document: ', updated_document)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
+
+        updated_document_dict["created_at"] = updated_document_dict["created_at"].isoformat(
+        )
+        serialized_recipe = json.loads(
+            json.dumps(updated_document_dict, default=str))
+
         return JSONResponse(content=updated_document_dict)
     except HTTPException as e:
         raise HTTPException(
