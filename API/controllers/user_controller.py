@@ -1,7 +1,7 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
 from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
-from models.response_models import LoginResponse, LoginRequest, MessageResponse, DeleteRequest, FollowsResponse
+from models.response_models import LoginResponse, LoginRequest, MessageResponse, FollowsResponse
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from typing import List
 from utils.session_manager import SessionManager, get_current_session, get_current_user
@@ -62,9 +62,10 @@ async def update_user(user: UserUpdate, current_user: str = Depends(get_current_
 
 
 @router.delete("/", response_model=MessageResponse, dependencies=[Depends(get_current_session)], responses=common_responses)
-async def delete_user(user: DeleteRequest, current_user: str = Depends(get_current_session)):
+async def delete_user(user: LoginRequest, request: Request, current_user: str = Depends(get_current_session)):
+    session_id = request.cookies.get("session-id")
     check_user_permissions(user.user_id, current_user)
-    result = await user_service.delete_user(user.user_id, user.password, str(user.session_id))
+    result = await user_service.delete_user(user.user_id, user.password, str(session_id))
     if not result:
         raise HTTPException(status_code=400, detail="사용자 탈퇴에 실패하였습니다.")
 

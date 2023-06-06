@@ -12,10 +12,6 @@ class LoginRequest(BaseModel):
     password: str
 
 
-class DeleteRequest(LoginRequest):
-    session_id: str
-
-
 class LogoutRequest(BaseModel):
     session_id: str
 
