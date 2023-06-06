@@ -64,13 +64,13 @@ async def search_recipes_by_title(value: str):
 @router.get("/popularity", response_model=RecipeGetList)
 async def get_recipes_by_popularity():
     recipe = await recipe_service.get_recipes_by_popularity()
-    return ({"recipes": recipe})
+    return JSONResponse(content={"recipes": recipe})
 
 
 @router.get("/user/{user_id}", response_model=RecipeGetList)
 async def get_recipes_by_user_id(user_id: str):
-    recipe = await recipe_service.get_recipes_by_user_id(user_id)
-    return {"recipes": recipe}
+    recipes = await recipe_service.get_recipes_by_user_id(user_id)
+    return JSONResponse(content={"recipes": recipes})
 
 
 @router.get("/{recipe_id}")
@@ -83,7 +83,7 @@ async def get_recipe_by_recipe_id(recipe_id: str):
         )
     await recipe_service.update_recipe_view(recipe_id)
     serialized_recipes = json.loads(json.dumps(recipe, default=str))
-    return JSONResponse(content=serialized_recipes, status_code=201)
+    return JSONResponse(content={"recipe": serialized_recipes})
 
 
 @router.post("/", status_code=201)
@@ -157,7 +157,7 @@ async def update_like(recipe_id: str):
                 detail=f"Recipe with id {recipe_id} not found"
             )
         serialized_recipe = json.loads(json.dumps(recipe, default=str))
-        return JSONResponse(content=serialized_recipe), 200
+        return JSONResponse(content=serialized_recipe, status_code=201)
     except HTTPException as e:
         raise HTTPException(
             status_code=e.status_code,
