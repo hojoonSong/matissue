@@ -72,3 +72,13 @@ class UserUpdate(UserBase):
             raise HTTPException(
                 status_code=400, detail='비밀번호는 8글자 이상, 숫자와 대소문자를 혼용하여야 합니다.')
         return password
+
+
+class UserForgotIDIn(BaseModel):
+    email: EmailStr
+    birth_date: str
+
+
+class UserForgotPasswordIn(BaseModel):
+    user_id: str
+    birth_date: str

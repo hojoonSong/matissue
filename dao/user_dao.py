@@ -41,6 +41,18 @@ class UserDao:
             return user.username
         return None
 
+    async def get_user_by_email_and_birthdate(self, email: str, birthdate: str):
+        user_doc = await self.collection.find_one({"email": email, "birthdate": birthdate})
+        if user_doc:
+            return UserInDB(**user_doc)
+        return None
+
+    async def get_user_by_id_and_birthdate(self, user_id: str, birthdate: str):
+        user_doc = await self.collection.find_one({"user_id": user_id, "birthdate": birthdate})
+        if user_doc:
+            return UserInDB(**user_doc)
+        return None
+
     async def get_users(self):
         user_docs = self.collection.find({})
         users = []
