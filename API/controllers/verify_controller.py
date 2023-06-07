@@ -1,7 +1,6 @@
 from fastapi import Query, Depends, HTTPException, APIRouter
 from utils.session_manager import SessionManager
 from services.user_service import UserService
-from models.user_models import UserIn
 from dao.user_dao import UserDao, get_user_dao
 from datetime import datetime
 
