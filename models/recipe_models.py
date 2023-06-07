@@ -1,7 +1,7 @@
 from enum import IntEnum
 from datetime import datetime
 from enum import Enum, IntEnum
-from pydantic import BaseModel, Field, Extra
+from pydantic import BaseModel, Field, Extra, HttpUrl
 from typing import List, Optional
 from nanoid import generate
 from dataclasses import dataclass
@@ -60,7 +60,7 @@ class Information(BaseModel):
 
 class SequenceItem(BaseModel):
     step: int  # url 들어갈예정
-    picture: str  # url 들어갈예정
+    picture: HttpUrl
     description: str
 
     class Config:
@@ -75,8 +75,8 @@ class SequenceItem(BaseModel):
 
 class RecipeBase(BaseModel):
     recipe_title: str
-    recipe_thumbnail: str
-    recipe_video: str
+    recipe_thumbnail: HttpUrl
+    recipe_video: HttpUrl
     recipe_description: str
     recipe_category: Category
     recipe_info: Information
@@ -87,8 +87,8 @@ class RecipeBase(BaseModel):
 
 class RecipeIn(BaseModel):
     recipe_title: str
-    recipe_thumbnail: str
-    recipe_video: str
+    recipe_thumbnail: HttpUrl
+    recipe_video: HttpUrl
     recipe_description: str
     recipe_category: Category
     recipe_info: Information
@@ -170,8 +170,8 @@ class RecipeCreate(RecipeBase):
 
 class RecipeUpdate(BaseModel):
     recipe_title: Optional[str]
-    recipe_thumbnail: Optional[str]
-    recipe_video: Optional[str]
+    recipe_thumbnail: Optional[HttpUrl]
+    recipe_video: Optional[HttpUrl]
     recipe_description: Optional[str]
     recipe_category: Optional[Category]
     recipe_info: Optional[Information]
@@ -233,7 +233,7 @@ class RecipeUpdate(BaseModel):
 
 class RecipeGetItem(BaseModel):
     recipe_title: str
-    recipe_thumbnail: str
+    recipe_thumbnail: HttpUrl
     recipe_id: str
     recipe_view: int
     user_id: str
