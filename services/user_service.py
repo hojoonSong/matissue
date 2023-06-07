@@ -2,10 +2,11 @@ from models.user_models import UserIn, UserInDB
 from utils.hash_manager import Hasher
 from utils.session_manager import SessionManager
 from datetime import datetime
-from dao.user_dao import UserDao
-from fastapi import HTTPException, Response
+from dao.user_dao import UserDao, get_user_dao
+from fastapi import HTTPException, Response, Depends
 from utils.config import get_settings
 from utils.permission_manager import check_user_permissions
+import secrets
 import secrets
 import redis
 
@@ -109,7 +110,7 @@ class UserService:
         return {"detail": "성공적으로 로그아웃되었습니다."}
 
     async def create_temporary_password(self, user_id: str):
-        temporary_password = secrets.token.hex(8)
+        temporary_password = secrets.token_hex(8)
         user = await self.user_dao.get_user_by_id(user_id)
         if not user:
             raise HTTPException(
@@ -119,8 +120,7 @@ class UserService:
         user.hashed_password = hashed_temporary_password
         user_in_db = UserInDB(
             **user.dict(),
-            hashed_password=hashed_temporary_password,
-            created_at=user.created_at
+            # hashed_password=hashed_temporary_password,
         )
         if await self.user_dao.update_user_in_db(user_in_db):
             return temporary_password
@@ -132,3 +132,7 @@ class UserService:
 
     async def get_followers(self, user_id: str):
         return await self.user_dao.get_followers(user_id)
+
+
+def get_user_service(user_dao: UserDao = Depends(get_user_dao)) -> UserService:
+    return UserService(user_dao)

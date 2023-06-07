@@ -1,23 +1,36 @@
 .
 ├── API
 │   ├── controllers
-│   │   └── user_controller.py
+│   │   ├── recipe_controller.py
+│   │   ├── user_controller.py
+│   │   ├── verify_controller.py
+│   │   └── websocket_controller.py
 │   └── routes
-│       └── user_routes.py
+│       ├── api_routes.py
+│       ├── recipe_routes.py
+│       ├── user_routes.py
+│       └── verify_routes.py
 ├── dao
+│   ├── recipe_dao.py
 │   └── user_dao.py
 ├── main.py
 ├── models
-│   └── user.py
+│   ├── recipe_models.py
+│   ├── response_models.py
+│   └── user_models.py
+├── output.txt
+├── requirements.txt
 ├── services
-│   ├── session_service.py
+│   ├── recipe_service.py
 │   └── user_service.py
-├── dao
-│   └── user_dao.py
 └── utils
     ├── config.py
     ├── db_manager.py
-    ├── hashing.py
-    └── session_manager.py
+    ├── email_manager.py
+    ├── hash_manager.py
+    ├── permission_manager.py
+    ├── response_manager.py
+    ├── session_manager.py
+    └── websocket_manager.py
 
-7 directories, 13 files
+7 directories, 26 files
