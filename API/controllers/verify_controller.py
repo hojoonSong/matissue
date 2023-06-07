@@ -1,6 +1,6 @@
 from fastapi import Query, Depends, HTTPException, APIRouter
 from utils.session_manager import SessionManager
-from services.user_service import UserService
+from services.user_service import UserService, get_user_service
 from models.user_models import UserForgotIDIn, UserForgotPasswordIn
 from dao.user_dao import UserDao, get_user_dao
 from datetime import datetime
@@ -8,6 +8,8 @@ from utils.email_manager import send_email
 
 router = APIRouter()
 session_manager = SessionManager()
+user_dao = UserDao()
+user_service = UserService(user_dao)
 
 
 @router.get("/verify", status_code=200)
@@ -53,13 +55,13 @@ async def forgot_id(user: UserForgotIDIn, user_dao: UserDao = Depends(get_user_d
 
 
 @router.post("/forgot-password", status_code=200)
-async def forgot_password(user: UserForgotPasswordIn, user_dao: UserDao = Depends(get_user_dao), session_manager: SessionManager = Depends(SessionManager)):
+async def forgot_password(user: UserForgotPasswordIn, user_dao: UserDao = Depends(get_user_dao), user_service: UserService = Depends(get_user_service)):
     existing_user = await user_dao.get_user_by_id_and_birthdate(user.user_id, user.birth_date)
     if not existing_user:
         raise HTTPException(
             status_code=404, detail="해당 정보를 가진 사용자를 찾을 수 없습니다.")
 
-    temporary_password = session_manager.create_temporary_password(
+    temporary_password = await user_service.create_temporary_password(
         user.user_id)
     subject = "임시 비밀번호 발급 요청입니다."
     message = f"귀하의 임시 비밀번호는 {temporary_password} 입니다. 로그인 후 반드시 비밀번호를 변경해주세요."

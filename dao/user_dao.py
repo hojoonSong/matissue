@@ -49,13 +49,13 @@ class UserDao:
         return users
 
     async def get_user_by_email_and_birthdate(self, email: str, birthdate: str):
-        user_doc = await self.collection.find_one({"email": email, "birthdate": birthdate})
+        user_doc = await self.collection.find_one({"email": email, "birth_date": birthdate})
         if user_doc:
             return UserInDB(**user_doc)
         return None
 
     async def get_user_by_id_and_birthdate(self, user_id: str, birthdate: str):
-        user_doc = await self.collection.find_one({"user_id": user_id, "birthdate": birthdate})
+        user_doc = await self.collection.find_one({"user_id": user_id, "birth_date": birthdate})
         if user_doc:
             return UserInDB(**user_doc)
         return None
