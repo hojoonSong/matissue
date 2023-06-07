@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Path, Query
+from fastapi import Depends, HTTPException, Path, Query, Response
 from bson import json_util
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
@@ -6,8 +6,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import json
-from models.recipe_models import CommentBase, CommentIn, RecipeBase, RecipeCreate, RecipeGetList, RecipeUpdate
+from models.recipe_models import CommentBase, CommentIn, CommentUpdate, RecipeBase, RecipeCreate, RecipeGetList, RecipeIn, RecipeUpdate
 from dao.recipe_dao import RecipeDao
+
 from services.recipe_service import RecipeService
 from utils.session_manager import SessionManager, get_current_session, get_current_user
 
@@ -65,22 +66,22 @@ async def search_recipes_by_title(value: str):
 @router.get("/user", dependencies=[Depends(get_current_session)])
 async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
     recipes = await recipe_service.get_recipes_by_user_id(current_user)
-    return JSONResponse(content={"recipes": recipes})
+    serialized_recipes = json.loads(json.dumps(recipes, default=str))
+    return JSONResponse(content=serialized_recipes)
 
 
 @router.get("/popularity", response_model=RecipeGetList)
 async def get_recipes_by_popularity():
-    recipe = await recipe_service.get_recipes_by_popularity()
-    return JSONResponse(content={"recipes": recipe})
+    recipes = await recipe_service.get_recipes_by_popularity()
+    serialized_recipes = json.loads(json.dumps(recipes, default=str))
+    return JSONResponse(content=serialized_recipes)
 
 
 @router.get("/{recipe_id}")
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
-    comments = await recipe_dao.get_comments(recipe_id)
+    comments = await recipe_service.get_comments(recipe_id)
     recipe['comments'] = comments
-    print(comments)
-    print(recipe)
     if recipe == None:
         raise HTTPException(
             status_code=404,
@@ -91,15 +92,30 @@ async def get_recipe_by_recipe_id(recipe_id: str):
     return JSONResponse(content={"recipe": serialized_recipes})
 
 
+@router.get("/comment/{comment_id}")
+async def get_comments(comment_id: str):
+    try:
+        result = await recipe_service.get_one_comment(comment_id)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to find comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=200)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
 @router.post("/", dependencies=[Depends(get_current_session)], status_code=201)
-async def register_recipe(recipe: RecipeCreate, current_user: str = Depends(get_current_session)) -> RecipeCreate:
+async def register_recipe(recipe: dict, current_user: str = Depends(get_current_session)):
     try:
         recipe["user_id"] = current_user
-        result = await recipe_service.register_recipe(recipe)
+        new_recipe = RecipeCreate(**recipe)  # dict를 RecipeCreate 클래스의 인스턴스로 변환
+        result = await recipe_service.register_recipe(new_recipe)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to insert recipe")
         serialized_recipes = json.loads(json.dumps(result, default=str))
+        print(serialized_recipes)
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
@@ -111,23 +127,11 @@ async def register_recipes(recipes: List[RecipeCreate]):
     return JSONResponse(content=response, status_code=201)
 
 
-@router.get("/comment/{comment_id}")
-async def get_comments(comment_id: str):
+@router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201)
+async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
     try:
-        result = await recipe_dao.get_one_comment(comment_id)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to find comment")
-        serialized_comment = json.loads(json.dumps(result[0], default=str))
-        return JSONResponse(content=serialized_comment, status_code=200)
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-@router.post("/comment/{recipe_id}")
-async def register_comment(recipe_id: str, comment: CommentIn):
-    try:
-        result = await recipe_dao.register_comment(recipe_id, comment)
+        comment.comment_author = current_user
+        result = await recipe_service.register_comment(recipe_id, comment)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to insert comment")
@@ -137,34 +141,21 @@ async def register_comment(recipe_id: str, comment: CommentIn):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
-@router.patch("/comment/{comment_id}")
-async def update_comment(comment_id: str, comment: CommentIn):
+@router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)])
+async def delete_comment(comment_id: str, current_user: str = Depends(get_current_session)):
     try:
-        result = await recipe_dao.update_comment(comment_id, comment)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to update comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
-
-
-@router.delete("/comment/{comment_id}")
-async def delete_comment(comment_id: str):
-    try:
-        result = await recipe_dao.delete_comment(comment_id)
+        result = await recipe_service.delete_comment(comment_id, current_user)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to delete comment")
-        return JSONResponse(status_code=204)
+        return Response(status_code=204)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
-@router.delete("/{recipe_id}", status_code=204)
-async def delete_recipe(recipe_id: str):
-    result = await recipe_service.delete_one_recipe(recipe_id)
+@router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)])
+async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_session)):
+    result = await recipe_service.delete_one_recipe(recipe_id, current_user)
     if result == 1:
         return JSONResponse(status_code=204)
     else:
@@ -174,10 +165,23 @@ async def delete_recipe(recipe_id: str):
         )
 
 
-@router.patch("/{recipe_id}")
-async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
+@router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)])
+async def update_comment(comment_id: str, comment: CommentUpdate, current_user: str = Depends(get_current_session)):
     try:
-        existing_recipe = await recipe_dao.get_recipe_to_update_recipe(recipe_id)
+        result = await recipe_service.update_comment(comment_id, comment, current_user)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to update comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)])
+async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_user: str = Depends(get_current_session)):
+    try:
+        existing_recipe = await recipe_service.get_recipe_to_update_recipe(recipe_id)
         if existing_recipe is None:
             raise HTTPException(
                 status_code=404,
@@ -189,7 +193,7 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate):
         updated_recipe.user_id = existing_recipe.user_id
         updated_recipe.created_at = existing_recipe.created_at
         updated_recipe.recipe_like = existing_recipe.recipe_like
-        updated_document = await recipe_dao.update_recipe(recipe_id, updated_recipe)
+        updated_document = await recipe_service.update_recipe(recipe_id, updated_recipe, current_user)
         updated_document_dict = updated_document.copy()
         updated_document_dict.pop("_id")  # ObjectId 필드 삭제
         updated_document_dict["created_at"] = updated_document_dict["created_at"].isoformat(

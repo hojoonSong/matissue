@@ -4,6 +4,8 @@ from enum import Enum, IntEnum
 from pydantic import BaseModel, Field, Extra
 from typing import List, Optional
 from nanoid import generate
+from dataclasses import dataclass
+from pydantic import BaseModel
 
 
 class Category(str, Enum):
@@ -82,6 +84,18 @@ class RecipeBase(BaseModel):
     recipe_sequence: List[SequenceItem]
     recipe_tip: str
 
+
+class RecipeIn(BaseModel):
+    recipe_title: str
+    recipe_thumbnail: str
+    recipe_video: str
+    recipe_description: str
+    recipe_category: Category
+    recipe_info: Information
+    recipe_ingredients: List[Ingredients]
+    recipe_sequence: List[SequenceItem]
+    recipe_tip: str
+
     class Config:
         schema_extra = {
             "example": {
@@ -117,8 +131,8 @@ class RecipeBase(BaseModel):
 class RecipeCreate(RecipeBase):
     recipe_id: str = Field(default_factory=lambda: generate())
     recipe_view: int = Field(default=0)
-    user_id: str
-    user_nickname: str = Field(default='test')
+    user_id: Optional[str]
+    user_nickname: Optional[str] = Field(default='test')
     created_at: datetime = Field(default_factory=datetime.utcnow)
     recipe_like: int = Field(default=0)
 
@@ -149,13 +163,7 @@ class RecipeCreate(RecipeBase):
                         "description": "밥위에 덮는다."
                     }
                 ],
-                "recipe_tip": "맛있다",
-                "user_id": "test",
-                "user_nickname": "test",
-                "created_at": "자동생성",
-                "recipe_id": "자동생성",
-                "recipe_view": "자동생성",
-                "recipe_like": "자동생성"
+                "recipe_tip": "맛있다"
             }
         }
 
@@ -219,7 +227,6 @@ class RecipeUpdate(BaseModel):
                     }
                 ],
                 "recipe_tip": "수정테스트)팁",
-                "user_nickname": "test"
             }
         }
 
@@ -267,18 +274,29 @@ class CommentBase(BaseModel):
     comment_like: int = Field(default=0)
     comment_id: str = Field(default_factory=lambda: generate(), const=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
+    comment_parent: str = Field(default='test')
+
+
+class CommentUpdate(CommentBase):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-    comment_parent: str
-
-
-class CommentIn(BaseModel):
-    comment_author: str = Field(default='test')
-    comment_text: str
 
     class Config:
         schema_extra = {
             "example": {
-                "comment_author": "matissue",
+                "comment_text": "수정테스트",
+            }
+        }
+
+
+class CommentIn(BaseModel):
+    comment_author: str = Field(default='test')
+    comment_text: str = Field(default='test')
+    comment_nickname: str = Field(default='test')
+    comment_parent: str = Field(default='test')
+
+    class Config:
+        schema_extra = {
+            "example": {
                 "comment_text": "와 정말 맛있겠어요"
             }
         }

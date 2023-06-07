@@ -1,3 +1,4 @@
+from dao.user_dao import UserDao
 from typing import List
 from fastapi import HTTPException
 
@@ -13,7 +14,9 @@ class RecipeDao:
     def __init__(self, db_manager: MongoDBManager = None):
         self.db_manager = db_manager or MongoDBManager()
         self.collection = self.db_manager.get_collection("recipes")
+        self.user_collection = self.db_manager.get_collection("users")
         self.comment_collection = self.db_manager.get_collection("comments")
+
     # get
 
     async def get_all_recipes(self):
@@ -42,7 +45,11 @@ class RecipeDao:
         return RecipeCreate(**result)
 
     async def get_recipes_by_user_id(self, user_id):
-        result = await self.collection.find({"user_id": user_id}).to_list(length=None)
+        projection = {"_id": 0}  # "_id" 필드를 제외한 모든 필드를 가져옴
+        result = await self.collection.find(
+            {"user_id": user_id},
+            projection=projection
+        ).to_list(length=None)
         print(result)
         return result
 
@@ -50,15 +57,12 @@ class RecipeDao:
         result = await self.comment_collection.find({"comment_parent": recipe_id}).to_list(length=None)
         return result
 
-    async def get_one_comment(self, comment_id):
-        result = await self.comment_collection.find({"comment_id": comment_id}).to_list(length=None)
-        return result
      # post
 
     async def register_recipe(self, recipe: RecipeCreate):
-        recipe_data = recipe.dict()
-        #  생성일자를 추가합니다.
-        recipe_data["created_at"] = datetime.utcnow()
+        user = await self.user_collection.find_one({"user_id": recipe.user_id})
+        user_nickname = user["username"]
+        recipe.user_nickname = user_nickname
         await self.collection.insert_one(recipe.dict())
         return {"recipe_id": recipe.recipe_id, "full": recipe}
 
@@ -72,18 +76,15 @@ class RecipeDao:
             )
         return {"message": "Recipes inserted successfully"}
 
-    async def register_comment(self, recipe_id, comment: CommentBase):
-        comment_base = CommentBase(
-            comment_author=comment.comment_author,
-            comment_text=comment.comment_text,
-            comment_parent=recipe_id
-        )
-        await self.comment_collection.insert_one(comment_base.dict())
-        inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
-        return inserted_data
     # update
 
-    async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase):
+    async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase, current_user):
+        existing_recipe = await self.collection.find_one({"recipe_id": recipe_id})
+        if existing_recipe['user_id'] != current_user:
+            raise HTTPException(
+                status_code=403,
+                detail="작성자가 아닐 시 수정이 불가합니다."
+            )
         updated_recipe_dict = updated_recipe.dict(exclude={"recipe_id"})
         updated_document = await self.collection.find_one_and_update(
             {"recipe_id": recipe_id},
@@ -96,6 +97,27 @@ class RecipeDao:
                 detail=f"Recipe with id {recipe_id} not found"
             )
         return updated_document
+    # delete
+
+    async def delete_one_recipe(self, recipe_id: str, current_user):
+        existing_recipe = await self.collection.find_one({"recipe_id": recipe_id})
+        if existing_recipe['user_id'] != current_user:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not authorized to delete this recipe"
+            )
+        result = await self.collection.delete_one({"recipe_id": recipe_id})
+        if result.deleted_count == 1:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제 실패
+
+    async def delete_all_recipe(self):
+        result = await self.collection.delete_many({})
+        if result.deleted_count != 0:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제 실패
 
     async def update_recipe_view(self, recipe_id: str):
         update_query = {"$inc": {"recipe_view": 1}}
@@ -111,32 +133,51 @@ class RecipeDao:
         else:
             return None
 
-    async def update_comment(self, comment_id, modified_comment: CommentBase):
+    async def get_one_comment(self, comment_id):
+        result = await self.comment_collection.find_one({"comment_id": comment_id})
+        return result
+
+    async def register_comment(self, recipe_id, comment: CommentBase):
+        user = await self.user_collection.find_one({"user_id": comment.comment_author})
+        comment_nickname = user["username"]
+        comment.comment_nickname = comment_nickname
+        comment.comment_parent = recipe_id
+        comment_base = CommentBase(
+            comment_author=comment.comment_author,
+            comment_text=comment.comment_text,
+            comment_parent=comment.comment_parent,
+            comment_nickname=comment.comment_nickname
+        )
+        await self.comment_collection.insert_one(comment_base.dict())
+        inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
+        return inserted_data
+
+    async def update_comment(self, comment_id, modified_comment: CommentBase, current_user):
+        existing_comment = await self.comment_collection.find_one({"comment_id": comment_id})
+        if existing_comment['comment_author'] != current_user:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not authorized to update this comment"
+            )
         updated_comment = await self.comment_collection.find_one_and_update(
             {"comment_id": comment_id},
-            {"$set": {"comment_text": modified_comment.comment_text}},
+            {"$set": {
+                "comment_text": modified_comment.comment_text,
+                "updated_at": datetime.utcnow()
+            }},
             return_document=ReturnDocument.AFTER
         )
         return updated_comment
 
-    async def delete_comment(self, comment_id: str):
+    async def delete_comment(self, comment_id: str, current_user):
+        existing_comment = await self.comment_collection.find_one({"comment_id": comment_id})
+        if existing_comment['comment_author'] != current_user:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not authorized to delete this comment"
+            )
         result = await self.collection.delete_one({"comment_id": comment_id})
         if result.deleted_count == 1:
-            return 1  # 문서가 성공적으로 삭제되었을 경우
-        else:
-            return 0  # 문서 삭제 실패
-     # delete
-
-    async def delete_one_recipe(self, recipe_id: str):
-        result = await self.collection.delete_one({"recipe_id": recipe_id})
-        if result.deleted_count == 1:
-            return 1  # 문서가 성공적으로 삭제되었을 경우
-        else:
-            return 0  # 문서 삭제 실패
-
-    async def delete_all_recipe(self):
-        result = await self.collection.delete_many({})
-        if result.deleted_count != 0:
             return 1  # 문서가 성공적으로 삭제되었을 경우
         else:
             return 0  # 문서 삭제 실패
