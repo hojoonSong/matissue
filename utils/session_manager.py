@@ -18,35 +18,38 @@ class Session(BaseModel):
 
 
 class SessionManager:
+    def __init__(self):
+        self.redis_client = redis.Redis.from_url(
+            settings.redis_url, decode_responses=True)
+
     def create_session(self, data: str):
         session_id = str(uuid.uuid4())
-        redis_client.set(session_id, data)
+        self.redis_client.set(session_id, data)
         return session_id
 
     def get_session(self, session_id: str, expiration: int = 3600):
         if session_id is None:
             raise ValueError("Session ID cannot be None")
-        data = redis_client.get(session_id)
+        data = self.redis_client.get(session_id)
         if data is None:
             raise HTTPException(status_code=401, detail="Invalid session id")
-        redis_client.expire(session_id, expiration)
+        self.redis_client.expire(session_id, expiration)
         return data
 
-    @staticmethod
-    async def delete_session(session_id: str):
-        result = redis_client.delete(session_id)
+    async def delete_session(self, session_id: str):
+        result = self.redis_client.delete(session_id)
         return result > 0
 
     def create_verification_code(self, email: str):
         verification_code = str(uuid.uuid4())
-        redis_client.set(verification_code, email, ex=86400)
+        self.redis_client.set(verification_code, email, ex=86400)
         return verification_code
 
     def verify_email(self, code: str):
-        email = redis_client.get(code)
+        email = self.redis_client.get(code)
         if email is None:
             return False
-        redis_client.delete(code)
+        self.redis_client.delete(code)
         return email
 
     def save_user_info(self, user: UserIn):
@@ -57,7 +60,7 @@ class SessionManager:
     def create_email_verification_code(self, email: str):
         verification_code = ''.join(random.choices(
             string.ascii_uppercase + string.digits, k=6))
-        redis_client.set(verification_code, email, ex=1800)
+        self.redis_client.set(verification_code, email, ex=1800)
         return verification_code
 
     def check_verification_code(self, email: str, code: str):
