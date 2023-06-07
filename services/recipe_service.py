@@ -39,6 +39,15 @@ class RecipeService:
     async def get_recipe_to_update_recipe(self, recipe_id):
         result = await self.recipe_dao.get_recipe_to_update_recipe(recipe_id)
         return result
+
+    async def get_comments(self, recipe_id):
+        result = await self.recipe_dao.get_comments(recipe_id)
+        return result
+
+    async def get_one_comment(self, comment_id):
+        result = await self.recipe_dao.get_one_comment(comment_id)
+        return result
+
      # post
 
     async def register_recipe(self, recipe: RecipeCreate):
@@ -49,10 +58,13 @@ class RecipeService:
         result = await self.recipe_dao.register_recipes(recipes)
         return result
 
+    async def register_comment(self, recipe_id, comment):
+        result = await self.recipe_dao.register_comment(recipe_id, comment)
+        return result
      # update
 
-    async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase):
-        result = await self.recipe_dao.update_recipe(recipe_id, updated_recipe)
+    async def update_recipe(self, recipe_id, updated_recipe, current_user):
+        result = await self.recipe_dao.update_recipe(recipe_id, updated_recipe, current_user)
         return result
 
     async def update_recipe_view(self, recipe_id: str):
@@ -63,12 +75,20 @@ class RecipeService:
         result = await self.recipe_dao.update_recipe_like(recipe_id)
         return result
 
+    async def update_comment(self, comment_id, comment, current_user):
+        result = await self.recipe_dao.update_comment(comment_id, comment, current_user)
+        return result
+
      # delete
 
-    async def delete_one_recipe(self, recipe_id: str):
-        result = await self.recipe_dao.delete_one_recipe(recipe_id)
+    async def delete_one_recipe(self, recipe_id: str, current_user):
+        result = await self.recipe_dao.delete_one_recipe(recipe_id, current_user)
         return result
 
     async def delete_all_recipe(self):
         result = await self.recipe_dao.delete_all_recipe()
+        return result
+
+    async def delete_comment(self, comment_id, current_user):
+        result = await self.recipe_dao.delete_comment(comment_id, current_user)
         return result
