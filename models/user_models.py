@@ -53,6 +53,7 @@ class UserInDB(UserBase):
 class UserUpdate(UserBase):
     username: Optional[str]
     email: Optional[EmailStr]
+    email_code: Optional[str]
     birth_date: Optional[str]
     img: Optional[str]
     password: Optional[str]
