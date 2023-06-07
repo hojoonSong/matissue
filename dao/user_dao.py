@@ -48,6 +48,18 @@ class UserDao:
             users.append(UserInDB(**user_doc))
         return users
 
+    async def get_user_by_email_and_birthdate(self, email: str, birthdate: str):
+        user_doc = await self.collection.find_one({"email": email, "birthdate": birthdate})
+        if user_doc:
+            return UserInDB(**user_doc)
+        return None
+
+    async def get_user_by_id_and_birthdate(self, user_id: str, birthdate: str):
+        user_doc = await self.collection.find_one({"user_id": user_id, "birthdate": birthdate})
+        if user_doc:
+            return UserInDB(**user_doc)
+        return None
+
     async def modify_subscription(self, current_user: str, follow_user_id: str, subscribe: bool) -> None:
         user = await self.get_user_by_id(current_user)
         follow_user = await self.get_user_by_id(follow_user_id)

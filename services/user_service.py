@@ -6,6 +6,7 @@ from dao.user_dao import UserDao
 from fastapi import HTTPException, Response
 from utils.config import get_settings
 from utils.permission_manager import check_user_permissions
+import secrets
 import redis
 
 settings = get_settings()
@@ -106,6 +107,25 @@ class UserService:
             return {"detail": "세션 ID가 없거나 이미 로그아웃되었습니다."}
 
         return {"detail": "성공적으로 로그아웃되었습니다."}
+
+    async def create_temporary_password(self, user_id: str):
+        temporary_password = secrets.token.hex(8)
+        user = await self.user_dao.get_user_by_id(user_id)
+        if not user:
+            raise HTTPException(
+                status_code=404, detail=f"'{user_id}'를 찾을 수 없습니다.")
+
+        hashed_temporary_password = await Hasher.get_hashed_password(temporary_password)
+        user.hashed_password = hashed_temporary_password
+        user_in_db = UserInDB(
+            **user.dict(),
+            hashed_password=hashed_temporary_password,
+            created_at=user.created_at
+        )
+        if await self.user_dao.update_user_in_db(user_in_db):
+            return temporary_password
+        else:
+            return None
 
     async def modify_subscribe_user(self, current_user: str, follow_user_id: str, subscribe: bool) -> None:
         await self.user_dao.modify_subscription(follow_user_id, current_user, subscribe)
