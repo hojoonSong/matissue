@@ -45,12 +45,9 @@ class RecipeDao:
         return RecipeCreate(**result)
 
     async def get_recipes_by_user_id(self, user_id):
-        projection = {"_id": 0}  # "_id" 필드를 제외한 모든 필드를 가져옴
         result = await self.collection.find(
-            {"user_id": user_id},
-            projection=projection
+            {"user_id": user_id}
         ).to_list(length=None)
-        print(result)
         return result
 
     async def get_comments(self, recipe_id):

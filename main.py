@@ -11,7 +11,7 @@ origins = [
     "http://127.0.0.1:8000",
     "*",
     "https://matissue.onrender.com",
-    "https://kdt-sw-4-team10.elicecoding.com/",
+    "https://kdt-sw-4-team10.elicecoding.com"
     # 필요한 출처를 추가하십시오.
 ]
 

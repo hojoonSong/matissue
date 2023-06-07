@@ -63,11 +63,11 @@ async def search_recipes_by_title(value: str):
     return JSONResponse(content=serialized_recipes)
 
 
-@router.get("/user", dependencies=[Depends(get_current_session)])
+@router.get("/user", dependencies=[Depends(get_current_session)], response_model=RecipeGetList)
 async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
     recipes = await recipe_service.get_recipes_by_user_id(current_user)
     serialized_recipes = json.loads(json.dumps(recipes, default=str))
-    return JSONResponse(content=serialized_recipes)
+    return RecipeGetList(recipes=recipes)
 
 
 @router.get("/popularity", response_model=RecipeGetList)
