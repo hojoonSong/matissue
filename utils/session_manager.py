@@ -1,5 +1,6 @@
 from fastapi import Depends, HTTPException, status, Header, Request
 from pydantic import BaseModel
+from models.user_models import UserIn
 from typing import Optional
 from .config import get_settings
 import uuid
@@ -47,6 +48,11 @@ class SessionManager:
             return False
         redis_client.delete(code)
         return email
+
+    def save_user_info(self, user: UserIn):
+        user_json = user.json()
+        print(user_json)
+        self.redis_client.set(user.email, user_json, ex=86400)
 
     def create_email_verification_code(self, email: str):
         verification_code = ''.join(random.choices(
