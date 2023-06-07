@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import json
-from models.recipe_models import RecipeBase, RecipeCreate, RecipeGetList, RecipeUpdate
+from models.recipe_models import CommentBase, CommentIn, RecipeBase, RecipeCreate, RecipeGetList, RecipeUpdate
 from dao.recipe_dao import RecipeDao
 from services.recipe_service import RecipeService
 
@@ -103,6 +103,32 @@ async def register_recipe(recipe: RecipeCreate) -> RecipeCreate:
 async def register_recipes(recipes: List[RecipeCreate]):
     response = await recipe_service.register_recipes(recipes)
     return JSONResponse(content=response, status_code=201)
+
+
+@router.get("/comment/{recipe_id}")
+async def get_comments(recipe_id: str):
+    try:
+        result = await recipe_dao.get_comments(recipe_id)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to find commentse")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@router.post("/comment/{recipe_id}")
+async def register_comment(recipe_id: str, comment: CommentIn):
+    try:
+        result = await recipe_dao.register_comment(recipe_id, comment)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to insert comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
 @router.delete("/{recipe_id}", status_code=204)

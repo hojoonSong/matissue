@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from pymongo import ReturnDocument
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.recipe_models import RecipeBase, RecipeView, RecipeLike, RecipeCreate
+from models.recipe_models import CommentBase, RecipeBase, RecipeView, RecipeLike, RecipeCreate
 from datetime import datetime
 settings = get_settings()
 
@@ -13,7 +13,7 @@ class RecipeDao:
     def __init__(self, db_manager: MongoDBManager = None):
         self.db_manager = db_manager or MongoDBManager()
         self.collection = self.db_manager.get_collection("recipes")
-
+        self.comment_collection = self.db_manager.get_collection("comments")
     # get
 
     async def get_all_recipes(self):
@@ -45,6 +45,10 @@ class RecipeDao:
         result = await self.collection.find({"user_id": user_id}).to_list(length=None)
         return result
 
+    async def get_comments(self, recipe_id):
+        result = await self.comment_collection.find({"comment_parent": recipe_id}).to_list(length=None)
+        return result
+
      # post
 
     async def register_recipe(self, recipe: RecipeCreate):
@@ -64,7 +68,16 @@ class RecipeDao:
             )
         return {"message": "Recipes inserted successfully"}
 
-     # update
+    async def register_comment(self, recipe_id, comment: CommentBase):
+        comment_base = CommentBase(
+            comment_author=comment.comment_author,
+            comment_text=comment.comment_text,
+            comment_parent=recipe_id
+        )
+        await self.comment_collection.insert_one(comment_base.dict())
+        inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
+        return inserted_data
+    # update
 
     async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase):
         updated_recipe_dict = updated_recipe.dict(exclude={"recipe_id"})
