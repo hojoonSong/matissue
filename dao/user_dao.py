@@ -35,6 +35,12 @@ class UserDao:
             return UserInDB(**user_doc)
         return None
 
+    async def get_username_by_id(self, user_id: str):
+        user = await self.get_user_by_id(user_id)
+        if user:
+            return user.username
+        return None
+
     async def get_users(self):
         user_docs = self.collection.find({})
         users = []
