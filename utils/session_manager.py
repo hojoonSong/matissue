@@ -57,6 +57,12 @@ class SessionManager:
         print(user_json)
         self.redis_client.set(user.email, user_json, ex=86400)
 
+    def get_user_info(self, email: str) -> Optional[UserIn]:
+        user_json = self.redis_client.get(email)
+        if user_json is None:
+            return None
+        return UserIn.parse_raw(user_json)
+
     def create_email_verification_code(self, email: str):
         verification_code = ''.join(random.choices(
             string.ascii_uppercase + string.digits, k=6))
