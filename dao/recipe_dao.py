@@ -43,6 +43,7 @@ class RecipeDao:
 
     async def get_recipes_by_user_id(self, user_id):
         result = await self.collection.find({"user_id": user_id}).to_list(length=None)
+        print(result)
         return result
 
     async def get_comments(self, recipe_id):

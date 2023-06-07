@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Path, Query
+from fastapi import Depends, HTTPException, Path, Query
 from bson import json_util
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
@@ -9,6 +9,7 @@ import json
 from models.recipe_models import CommentBase, CommentIn, RecipeBase, RecipeCreate, RecipeGetList, RecipeUpdate
 from dao.recipe_dao import RecipeDao
 from services.recipe_service import RecipeService
+from utils.session_manager import SessionManager, get_current_session, get_current_user
 
 router = APIRouter()
 recipe_dao = RecipeDao()
@@ -61,16 +62,16 @@ async def search_recipes_by_title(value: str):
     return JSONResponse(content=serialized_recipes)
 
 
+@router.get("/user", dependencies=[Depends(get_current_session)])
+async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
+    recipes = await recipe_service.get_recipes_by_user_id(current_user)
+    return JSONResponse(content={"recipes": recipes})
+
+
 @router.get("/popularity", response_model=RecipeGetList)
 async def get_recipes_by_popularity():
     recipe = await recipe_service.get_recipes_by_popularity()
     return JSONResponse(content={"recipes": recipe})
-
-
-@router.get("/user/{user_id}", response_model=RecipeGetList)
-async def get_recipes_by_user_id(user_id: str):
-    recipes = await recipe_service.get_recipes_by_user_id(user_id)
-    return JSONResponse(content={"recipes": recipes})
 
 
 @router.get("/{recipe_id}")
@@ -90,9 +91,10 @@ async def get_recipe_by_recipe_id(recipe_id: str):
     return JSONResponse(content={"recipe": serialized_recipes})
 
 
-@router.post("/", status_code=201)
-async def register_recipe(recipe: RecipeCreate) -> RecipeCreate:
+@router.post("/", dependencies=[Depends(get_current_session)], status_code=201)
+async def register_recipe(recipe: RecipeCreate, current_user: str = Depends(get_current_session)) -> RecipeCreate:
     try:
+        recipe["user_id"] = current_user
         result = await recipe_service.register_recipe(recipe)
         if result is None:
             raise HTTPException(
