@@ -76,6 +76,10 @@ async def get_recipes_by_user_id(user_id: str):
 @router.get("/{recipe_id}")
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
+    comments = await recipe_dao.get_comments(recipe_id)
+    recipe['comments'] = comments
+    print(comments)
+    print(recipe)
     if recipe == None:
         raise HTTPException(
             status_code=404,
@@ -105,15 +109,15 @@ async def register_recipes(recipes: List[RecipeCreate]):
     return JSONResponse(content=response, status_code=201)
 
 
-@router.get("/comment/{recipe_id}")
-async def get_comments(recipe_id: str):
+@router.get("/comment/{comment_id}")
+async def get_comments(comment_id: str):
     try:
-        result = await recipe_dao.get_comments(recipe_id)
+        result = await recipe_dao.get_one_comment(comment_id)
         if result is None:
             raise HTTPException(
-                status_code=500, detail="Failed to find commentse")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
+                status_code=500, detail="Failed to find comment")
+        serialized_comment = json.loads(json.dumps(result[0], default=str))
+        return JSONResponse(content=serialized_comment, status_code=200)
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
@@ -131,11 +135,36 @@ async def register_comment(recipe_id: str, comment: CommentIn):
         return JSONResponse(content={"error": str(e)}, status_code=500)
 
 
+@router.patch("/comment/{comment_id}")
+async def update_comment(comment_id: str, comment: CommentIn):
+    try:
+        result = await recipe_dao.update_comment(comment_id, comment)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to update comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
+@router.delete("/comment/{comment_id}")
+async def delete_comment(comment_id: str):
+    try:
+        result = await recipe_dao.delete_comment(comment_id)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to delete comment")
+        return JSONResponse(status_code=204)
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
 @router.delete("/{recipe_id}", status_code=204)
 async def delete_recipe(recipe_id: str):
     result = await recipe_service.delete_one_recipe(recipe_id)
     if result == 1:
-        return {"msg": "삭제 성공"}
+        return JSONResponse(status_code=204)
     else:
         raise HTTPException(
             status_code=404,

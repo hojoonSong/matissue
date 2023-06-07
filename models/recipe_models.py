@@ -275,6 +275,14 @@ class CommentIn(BaseModel):
     comment_author: str = Field(default='test')
     comment_text: str
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "comment_author": "matissue",
+                "comment_text": "와 정말 맛있겠어요"
+            }
+        }
+
 
 class CommentsList(BaseModel):
     recipes: List[CommentBase]

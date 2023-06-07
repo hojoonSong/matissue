@@ -49,6 +49,9 @@ class RecipeDao:
         result = await self.comment_collection.find({"comment_parent": recipe_id}).to_list(length=None)
         return result
 
+    async def get_one_comment(self, comment_id):
+        result = await self.comment_collection.find({"comment_id": comment_id}).to_list(length=None)
+        return result
      # post
 
     async def register_recipe(self, recipe: RecipeCreate):
@@ -107,6 +110,20 @@ class RecipeDao:
         else:
             return None
 
+    async def update_comment(self, comment_id, modified_comment: CommentBase):
+        updated_comment = await self.comment_collection.find_one_and_update(
+            {"comment_id": comment_id},
+            {"$set": {"comment_text": modified_comment.comment_text}},
+            return_document=ReturnDocument.AFTER
+        )
+        return updated_comment
+
+    async def delete_comment(self, comment_id: str):
+        result = await self.collection.delete_one({"comment_id": comment_id})
+        if result.deleted_count == 1:
+            return 1  # 문서가 성공적으로 삭제되었을 경우
+        else:
+            return 0  # 문서 삭제 실패
      # delete
 
     async def delete_one_recipe(self, recipe_id: str):
