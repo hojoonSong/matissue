@@ -212,7 +212,7 @@ async def delete_comment(comment_id: str, current_user: str = Depends(get_curren
 async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_session)):
     result = await recipe_service.delete_one_recipe(recipe_id, current_user)
     if result == 1:
-        return JSONResponse(status_code=204)
+        return Response(status_code=204)
     else:
         raise HTTPException(
             status_code=404,
