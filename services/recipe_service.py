@@ -175,9 +175,9 @@ class RecipeService:
                 detail="Failed to register recipes"
             )
 
-    async def register_comment(self, recipe_id, comment):
+    async def register_comment(self, recipe_id, comment, current_user):
         try:
-            result = await self.recipe_dao.register_comment(recipe_id, comment)
+            result = await self.recipe_dao.register_comment(recipe_id, comment, current_user)
             return result
         except Exception as e:
             logger.error(f"Failed to register comment: {str(e)}")

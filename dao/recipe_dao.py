@@ -150,16 +150,21 @@ class RecipeDao:
         result = await self.comment_collection.find_one({"comment_id": comment_id})
         return result
 
-    async def register_comment(self, recipe_id, comment: CommentBase):
-        user = await self.user_collection.find_one({"user_id": comment.comment_author})
+    async def register_comment(self, recipe_id, comment: CommentBase, current_user):
+        user = await self.user_collection.find_one({"user_id": current_user})
+        comment_author = recipe_id
         comment_nickname = user["username"]
-        comment.comment_nickname = comment_nickname
-        comment.comment_parent = recipe_id
+        comment_parent = recipe_id
+        comment_text = comment
+        comment_profile = user
+        print(user)
+        # comment_profile_img
         comment_base = CommentBase(
-            comment_author=comment.comment_author,
-            comment_text=comment.comment_text,
-            comment_parent=comment.comment_parent,
-            comment_nickname=comment.comment_nickname
+            comment_author=comment_author,
+            comment_text=comment_text,
+            comment_parent=comment_parent,
+            comment_nickname=comment_nickname,
+            comment_profile=comment_profile
         )
         await self.comment_collection.insert_one(comment_base.dict())
         inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})

@@ -270,6 +270,8 @@ class RecipeLike(RecipeBase):
 
 class CommentBase(BaseModel):
     comment_author: str = Field(default='test')
+    comment_nickname: str = Field(default='test')
+    comment_profile_img: str = Field(default='test')
     comment_text: str
     comment_like: int = Field(default=0)
     comment_id: str = Field(default_factory=lambda: generate(), const=True)
@@ -289,10 +291,7 @@ class CommentUpdate(CommentBase):
 
 
 class CommentIn(BaseModel):
-    comment_author: str = Field(default='test')
     comment_text: str = Field(default='test')
-    comment_nickname: str = Field(default='test')
-    comment_parent: str = Field(default='test')
 
     class Config:
         schema_extra = {

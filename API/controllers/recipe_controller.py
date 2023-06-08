@@ -236,8 +236,11 @@ async def get_comments(comment_id: str):
 @router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201, tags=["comment"])
 async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
     try:
-        comment.comment_author = current_user
-        result = await recipe_service.register_comment(recipe_id, comment)
+        # comment_dict = comment.copy()
+        # print(comment_dict)
+        # comment_dict["comment_author"] = current_user
+        # print(comment_dict)
+        result = await recipe_service.register_comment(recipe_id, comment, current_user)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to insert comment")
