@@ -47,7 +47,9 @@ async def create_user(user: UserIn, session_manager: SessionManager = Depends(Se
 async def update_user(user: UserUpdate, current_user: str = Depends(get_current_session)):
     check_user_permissions(user.user_id, current_user)
 
-    if current_user != "admin" and user.email is not None:
+    current_user_in_db = await user_dao.get_user_by_id(user.user_id)
+
+    if current_user != "admin" and user.email is not None and user.email != current_user_in_db.email:
         if not session_manager.check_verification_code(user.email, user.email_code):
             raise HTTPException(status_code=400, detail="잘못된 인증 코드입니다.")
 

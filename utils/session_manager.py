@@ -54,7 +54,6 @@ class SessionManager:
 
     def save_user_info(self, user: UserIn):
         user_json = user.json()
-        print(user_json)
         self.redis_client.set(user.email, user_json, ex=86400)
 
     def get_user_info(self, email: str) -> Optional[UserIn]:
