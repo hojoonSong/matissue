@@ -210,14 +210,13 @@ async def delete_comment(comment_id: str, current_user: str = Depends(get_curren
 
 @router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)])
 async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_session)):
-    result = await recipe_service.delete_one_recipe(recipe_id, current_user)
-    if result == 1:
-        return Response(status_code=204)
-    else:
+    try:
+        result = await recipe_service.delete_one_recipe(recipe_id, current_user)
+        if result == 1:
+            return Response(status_code=204)
+    except Exception as e:
         raise HTTPException(
-            status_code=404,
-            detail=f"Recipe with id {recipe_id} not found"
-        )
+            status_code=404, detail=str(e))
 
 
 @router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)])
