@@ -27,7 +27,7 @@ async def get_all_recipes():
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/categories", response_model=RecipeGetList)
@@ -37,7 +37,7 @@ async def get_recipes_by_categories(value: str = Query(...)):
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/search", response_model=RecipeGetList)
@@ -66,27 +66,78 @@ async def search_recipes_by_title(value: str):
 @router.get("/user", dependencies=[Depends(get_current_session)], response_model=RecipeGetList)
 async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
     recipes = await recipe_service.get_recipes_by_user_id(current_user)
-    serialized_recipes = json.loads(json.dumps(recipes, default=str))
-    return RecipeGetList(recipes=recipes)
+    if recipes:
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return RecipeGetList(recipes=recipes)
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.get("/popularity", response_model=RecipeGetList)
 async def get_recipes_by_popularity():
-    recipes = await recipe_service.get_recipes_by_popularity()
-    serialized_recipes = json.loads(json.dumps(recipes, default=str))
-    return JSONResponse(content=serialized_recipes)
+    try:
+        recipes = await recipe_service.get_recipes_by_popularity()
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.get("/latest", response_model=RecipeGetList)
+async def get_recipes_by_latest():
+    try:
+        recipes = await recipe_service.get_recipes_by_latest()
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.get("/single", response_model=RecipeGetList)
+async def get_recipes_by_single_serving():
+    try:
+        recipes = await recipe_service.get_recipes_by_single_serving()
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.get("/vegetarian", response_model=RecipeGetList)
+async def get_recipes_by_vegetarian():
+    try:
+        recipes = await recipe_service.get_recipes_by_vegetarian()
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.get("/ingredients", response_model=RecipeGetList)
+async def get_recipes_by_ingredients(value: str):
+    try:
+        recipes = await recipe_service.get_recipes_by_ingredients(value)
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
 
 
 @router.get("/{recipe_id}")
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
-    comments = await recipe_service.get_comments(recipe_id)
-    recipe['comments'] = comments
-    if recipe == None:
+    if recipe is None:
         raise HTTPException(
             status_code=404,
             detail=f"Recipe with id {recipe_id} not found"
         )
+    comments = await recipe_service.get_comments(recipe_id)
+    recipe['comments'] = comments
     await recipe_service.update_recipe_view(recipe_id)
     serialized_recipes = json.loads(json.dumps(recipe, default=str))
     return JSONResponse(content={"recipe": serialized_recipes})
@@ -102,7 +153,8 @@ async def get_comments(comment_id: str):
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=200)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(
+            status_code=404, detail=str(e))
 
 
 @router.post("/", dependencies=[Depends(get_current_session)], status_code=201)
@@ -118,7 +170,8 @@ async def register_recipe(recipe: dict, current_user: str = Depends(get_current_
         print(serialized_recipes)
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(
+            status_code=404, detail=str(e))
 
 
 @router.post("/many", status_code=201)
@@ -138,7 +191,8 @@ async def register_comment(recipe_id: str, comment: CommentIn, current_user: str
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(
+            status_code=404, detail=str(e))
 
 
 @router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)])
@@ -150,7 +204,8 @@ async def delete_comment(comment_id: str, current_user: str = Depends(get_curren
                 status_code=500, detail="Failed to delete comment")
         return Response(status_code=204)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(
+            status_code=404, detail=str(e))
 
 
 @router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)])
@@ -175,7 +230,8 @@ async def update_comment(comment_id: str, comment: CommentUpdate, current_user: 
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        raise HTTPException(
+            status_code=404, detail=str(e))
 
 
 @router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)])
