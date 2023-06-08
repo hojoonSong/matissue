@@ -83,3 +83,7 @@ class UserForgotIDIn(BaseModel):
 class UserForgotPasswordIn(BaseModel):
     user_id: str
     birth_date: str
+
+
+class UserInWithoutPassword(UserBase):
+    created_at: Optional[datetime] = None

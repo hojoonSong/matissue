@@ -1,6 +1,6 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
-from models.user_models import UserUpdate, UserIn, UserOut
+from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
 from models.response_models import LoginResponse, LoginRequest, MessageResponse, FollowsResponse
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from typing import List
@@ -38,12 +38,13 @@ async def create_user(user: UserIn, session_manager: SessionManager = Depends(Se
     if "error" in result:
         raise HTTPException(status_code=500, detail="이메일 전송 실패")
 
-    session_manager.save_user_info(user)
+    print(user)
+    await session_manager.save_user_info(user)
 
     return {"message": "인증 이메일이 발송되었습니다. 이메일을 확인해 주세요."}
 
 
-@router.put("/", response_model=UserOut, dependencies=[Depends(get_current_session)], responses=common_responses)
+@router.patch("/", response_model=UserOut, dependencies=[Depends(get_current_session)], responses=common_responses)
 async def update_user(user: UserUpdate, current_user: str = Depends(get_current_session)):
     check_user_permissions(user.user_id, current_user)
 

@@ -26,11 +26,8 @@ class UserService:
         self.response = Response()
 
     async def create_user(cls, user: UserIn):
-        hashed_password = await Hasher.get_hashed_password(user.password)
         user_in_db = UserInDB(
             **user.dict(exclude={'password'}),
-            hashed_password=hashed_password,
-            created_at=datetime.now()
         )
         return await cls.user_dao.create_user_in_db(user_in_db)
 

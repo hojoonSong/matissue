@@ -34,8 +34,8 @@ async def verify(code: str = Query(...), session_manager: SessionManager = Depen
             "username": user_in.username,
             "email": user_in.email,
             "birth_date": user_in.birth_date,
-            "img": user_in.img,
-            "created_at": datetime.now()}
+            "img": user_in.img
+            }
 
 
 @router.post("/forgot-id", status_code=200)

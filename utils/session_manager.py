@@ -1,12 +1,15 @@
 from fastapi import Depends, HTTPException, status, Header, Request
 from pydantic import BaseModel
-from models.user_models import UserIn
+from models.user_models import UserInDB
 from typing import Optional
 from .config import get_settings
+from .hash_manager import Hasher
 import uuid
 import random
 import string
 import redis
+from datetime import datetime
+
 
 settings = get_settings()
 
@@ -52,15 +55,26 @@ class SessionManager:
         self.redis_client.delete(code)
         return email
 
-    def save_user_info(self, user: UserIn):
-        user_json = user.json()
-        self.redis_client.set(user.email, user_json, ex=86400)
+    async def save_user_info(self, user: UserInDB):
+        print(user)
+        hashed_password = await Hasher.get_hashed_password(user.password)
+        user_in_redis = UserInDB(
+            **user.dict(exclude={'password'}),
+            hashed_password=hashed_password,
+            created_at=datetime.now()
+        )
+        print(user_in_redis)
+        user_json = user_in_redis.json()
+        self.redis_client.set(user_in_redis.email, user_json, ex=86400)
 
-    def get_user_info(self, email: str) -> Optional[UserIn]:
+    def get_user_info(self, email: str):
         user_json = self.redis_client.get(email)
         if user_json is None:
             return None
-        return UserIn.parse_raw(user_json)
+        user_in_redis = UserInDB.parse_raw(user_json)
+        return UserInDB(**user_in_redis.dict(),
+                        password=user_in_redis.hashed_password
+                        )
 
     def create_email_verification_code(self, email: str):
         verification_code = ''.join(random.choices(
