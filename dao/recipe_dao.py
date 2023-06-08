@@ -32,6 +32,22 @@ class RecipeDao:
         results = await self.collection.find({"recipe_like": {"$gte": 10}}).to_list(length=None)
         return results
 
+    async def get_recipes_by_latest(self):
+        results = await self.collection.find().sort("created_at", -1).to_list(length=None)
+        return results
+
+    async def get_recipes_by_single_serving(self):
+        results = await self.collection.find({"recipe_info.serving": 1}).to_list(length=None)
+        return results
+
+    async def get_recipes_by_vegetarian(self):
+        results = await self.collection.find({"recipe_category": "vegetarian"}).to_list(length=None)
+        return results
+
+    async def get_recipes_by_ingredients(self, value):
+        results = await self.collection.find({"recipe_ingredients.name": value}).to_list(length=None)
+        return results
+
     async def get_recipe_by_recipe_id(self, id):
         result = await self.collection.find_one({"recipe_id": id})
         if result is None:
