@@ -20,7 +20,7 @@ db_manager = MongoDBManager()
 collection = db_manager.get_collection("recipes")
 
 
-@router.get("/", response_model=RecipeGetList)
+@router.get("/", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_all_recipes():
     try:
         recipes = await recipe_service.get_all_recipes()
@@ -30,7 +30,7 @@ async def get_all_recipes():
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/categories", response_model=RecipeGetList)
+@router.get("/categories", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_categories(value: str = Query(...)):
     try:
         recipes = await recipe_service.get_recipes_by_categories(value)
@@ -40,7 +40,7 @@ async def get_recipes_by_categories(value: str = Query(...)):
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.get("/search", response_model=RecipeGetList)
+@router.get("/search", response_model=RecipeGetList, tags=["recipes_get"])
 async def search_recipes_by_title(value: str):
     pipeline = [
         {"$match": {
@@ -63,7 +63,7 @@ async def search_recipes_by_title(value: str):
     return JSONResponse(content=serialized_recipes)
 
 
-@router.get("/user", dependencies=[Depends(get_current_session)], response_model=RecipeGetList)
+@router.get("/user", dependencies=[Depends(get_current_session)], response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
     recipes = await recipe_service.get_recipes_by_user_id(current_user)
     if recipes:
@@ -73,7 +73,7 @@ async def get_recipes_by_user_id(current_user: str = Depends(get_current_session
         raise HTTPException(status_code=404, detail="User not found")
 
 
-@router.get("/popularity", response_model=RecipeGetList)
+@router.get("/popularity", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_popularity():
     try:
         recipes = await recipe_service.get_recipes_by_popularity()
@@ -84,7 +84,7 @@ async def get_recipes_by_popularity():
             status_code=404, detail=str(e))
 
 
-@router.get("/latest", response_model=RecipeGetList)
+@router.get("/latest", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_latest():
     try:
         recipes = await recipe_service.get_recipes_by_latest()
@@ -95,7 +95,7 @@ async def get_recipes_by_latest():
             status_code=404, detail=str(e))
 
 
-@router.get("/single", response_model=RecipeGetList)
+@router.get("/single", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_single_serving():
     try:
         recipes = await recipe_service.get_recipes_by_single_serving()
@@ -106,7 +106,7 @@ async def get_recipes_by_single_serving():
             status_code=404, detail=str(e))
 
 
-@router.get("/vegetarian", response_model=RecipeGetList)
+@router.get("/vegetarian", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_vegetarian():
     try:
         recipes = await recipe_service.get_recipes_by_vegetarian()
@@ -117,7 +117,7 @@ async def get_recipes_by_vegetarian():
             status_code=404, detail=str(e))
 
 
-@router.get("/ingredients", response_model=RecipeGetList)
+@router.get("/ingredients", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_ingredients(value: str):
     try:
         recipes = await recipe_service.get_recipes_by_ingredients(value)
@@ -128,7 +128,7 @@ async def get_recipes_by_ingredients(value: str):
             status_code=404, detail=str(e))
 
 
-@router.get("/{recipe_id}")
+@router.get("/{recipe_id}", tags=["recipes_get"])
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
     if recipe is None:
@@ -143,7 +143,7 @@ async def get_recipe_by_recipe_id(recipe_id: str):
     return JSONResponse(content={"recipe": serialized_recipes})
 
 
-@router.get("/comment/{comment_id}")
+@router.get("/comment/{comment_id}", tags=["comment"])
 async def get_comments(comment_id: str):
     try:
         result = await recipe_service.get_one_comment(comment_id)
@@ -157,7 +157,7 @@ async def get_comments(comment_id: str):
             status_code=404, detail=str(e))
 
 
-@router.post("/", dependencies=[Depends(get_current_session)], status_code=201)
+@router.post("/", dependencies=[Depends(get_current_session)], status_code=201, tags=["recipes"])
 async def register_recipe(recipe: dict, current_user: str = Depends(get_current_session)):
     try:
         recipe["user_id"] = current_user
@@ -174,13 +174,7 @@ async def register_recipe(recipe: dict, current_user: str = Depends(get_current_
             status_code=404, detail=str(e))
 
 
-@router.post("/many", status_code=201)
-async def register_recipes(recipes: List[RecipeCreate]):
-    response = await recipe_service.register_recipes(recipes)
-    return JSONResponse(content=response, status_code=201)
-
-
-@router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201)
+@router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201, tags=["comment"])
 async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
     try:
         comment.comment_author = current_user
@@ -195,7 +189,7 @@ async def register_comment(recipe_id: str, comment: CommentIn, current_user: str
             status_code=404, detail=str(e))
 
 
-@router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)])
+@router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
 async def delete_comment(comment_id: str, current_user: str = Depends(get_current_session)):
     try:
         result = await recipe_service.delete_comment(comment_id, current_user)
@@ -208,7 +202,7 @@ async def delete_comment(comment_id: str, current_user: str = Depends(get_curren
             status_code=404, detail=str(e))
 
 
-@router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)])
+@router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)], tags=["recipes"])
 async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_session)):
     try:
         result = await recipe_service.delete_one_recipe(recipe_id, current_user)
@@ -219,7 +213,7 @@ async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_
             status_code=404, detail=str(e))
 
 
-@router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)])
+@router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
 async def update_comment(comment_id: str, comment: CommentUpdate, current_user: str = Depends(get_current_session)):
     try:
         result = await recipe_service.update_comment(comment_id, comment, current_user)
@@ -233,7 +227,7 @@ async def update_comment(comment_id: str, comment: CommentUpdate, current_user: 
             status_code=404, detail=str(e))
 
 
-@router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)])
+@router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)], tags=["recipes"])
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_user: str = Depends(get_current_session)):
     try:
         existing_recipe = await recipe_service.get_recipe_to_update_recipe(recipe_id)
@@ -263,7 +257,7 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_us
         )
 
 
-@router.patch("/{recipe_id}/like", status_code=201)
+@router.patch("/{recipe_id}/like", status_code=201, tags=["recipes"])
 async def update_like(recipe_id: str):
     try:
         recipe = await recipe_service.update_recipe_like(recipe_id)

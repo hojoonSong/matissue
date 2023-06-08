@@ -7,7 +7,7 @@ api_router = APIRouter()
 
 api_router.include_router(user_router, prefix="/users",
                           tags=["users"])
-api_router.include_router(recipe_router, prefix="/recipes",
-                          tags=["recipes"])
+api_router.include_router(recipe_router, prefix="/recipes")
+# tags=["recipes"]
 api_router.include_router(verify_router, prefix="/email",
                           tags=["email"])
