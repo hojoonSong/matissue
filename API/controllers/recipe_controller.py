@@ -143,20 +143,6 @@ async def get_recipe_by_recipe_id(recipe_id: str):
     return JSONResponse(content={"recipe": serialized_recipes})
 
 
-@router.get("/comment/{comment_id}", tags=["comment"])
-async def get_comments(comment_id: str):
-    try:
-        result = await recipe_service.get_one_comment(comment_id)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to find comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=200)
-    except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
-
-
 @router.post("/", dependencies=[Depends(get_current_session)], status_code=201, tags=["recipes"])
 async def register_recipe(recipe: dict, current_user: str = Depends(get_current_session)):
     try:
@@ -174,54 +160,12 @@ async def register_recipe(recipe: dict, current_user: str = Depends(get_current_
             status_code=404, detail=str(e))
 
 
-@router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201, tags=["comment"])
-async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
-    try:
-        comment.comment_author = current_user
-        result = await recipe_service.register_comment(recipe_id, comment)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to insert comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
-    except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
-
-
-@router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
-async def delete_comment(comment_id: str, current_user: str = Depends(get_current_session)):
-    try:
-        result = await recipe_service.delete_comment(comment_id, current_user)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to delete comment")
-        return Response(status_code=204)
-    except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
-
-
 @router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)], tags=["recipes"])
 async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_session)):
     try:
         result = await recipe_service.delete_one_recipe(recipe_id, current_user)
         if result == 1:
             return Response(status_code=204)
-    except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
-
-
-@router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
-async def update_comment(comment_id: str, comment: CommentUpdate, current_user: str = Depends(get_current_session)):
-    try:
-        result = await recipe_service.update_comment(comment_id, comment, current_user)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to update comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
         raise HTTPException(
             status_code=404, detail=str(e))
@@ -273,6 +217,63 @@ async def update_like(recipe_id: str):
             status_code=e.status_code,
             detail=str(e.detail)
         )
+
+
+@router.get("/comment/{comment_id}", tags=["comment"])
+async def get_comments(comment_id: str):
+    try:
+        result = await recipe_service.get_one_comment(comment_id)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to find comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=200)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201, tags=["comment"])
+async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
+    try:
+        comment.comment_author = current_user
+        result = await recipe_service.register_comment(recipe_id, comment)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to insert comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
+async def delete_comment(comment_id: str, current_user: str = Depends(get_current_session)):
+    try:
+        result = await recipe_service.delete_comment(comment_id, current_user)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to delete comment")
+        return Response(status_code=204)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
+
+@router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
+async def update_comment(comment_id: str, comment: CommentUpdate, current_user: str = Depends(get_current_session)):
+    try:
+        result = await recipe_service.update_comment(comment_id, comment, current_user)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to update comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=str(e))
+
 
 # 페이지네이션
 # @router.get("/")
