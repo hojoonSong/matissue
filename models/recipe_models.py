@@ -132,7 +132,7 @@ class RecipeCreate(RecipeBase):
     recipe_id: str = Field(default_factory=lambda: generate())
     recipe_view: int = Field(default=0)
     user_id: Optional[str]
-    user_nickname: Optional[str] = Field(default='test')
+    user_nickname: Optional[str]
     created_at: datetime = Field(default_factory=datetime.utcnow)
     recipe_like: int = Field(default=0)
 
@@ -178,7 +178,7 @@ class RecipeUpdate(BaseModel):
     recipe_ingredients: Optional[List[Ingredients]]
     recipe_sequence: Optional[List[SequenceItem]]
     recipe_tip: Optional[str]
-    user_nickname: Optional[str] = Field(default='test')
+    user_nickname: Optional[str]
     recipe_id: str = Field(default_factory=lambda: generate(), const=True)
     recipe_view: int = Field(default=0, const=True)
     user_id: str = Field(default='test', const=True)
@@ -269,12 +269,12 @@ class RecipeLike(RecipeBase):
 
 
 class CommentBase(BaseModel):
-    comment_author: str = Field(default='test')
+    comment_author: str
     comment_text: str
     comment_like: int = Field(default=0)
     comment_id: str = Field(default_factory=lambda: generate(), const=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
-    comment_parent: str = Field(default='test')
+    comment_parent: str
 
 
 class CommentUpdate(CommentBase):
@@ -289,10 +289,10 @@ class CommentUpdate(CommentBase):
 
 
 class CommentIn(BaseModel):
-    comment_author: str = Field(default='test')
-    comment_text: str = Field(default='test')
-    comment_nickname: str = Field(default='test')
-    comment_parent: str = Field(default='test')
+    comment_author: str
+    comment_text: str
+    comment_nickname: str
+    comment_parent: str
 
     class Config:
         schema_extra = {
