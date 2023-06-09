@@ -28,7 +28,7 @@ async def create_user(user: UserIn, session_manager: SessionManager = Depends(Se
             status_code=404, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
 
     verification_code = session_manager.create_verification_code(user.email)
-    verification_link = f"https://localhost:3000/api/verify?code={verification_code}"
+    verification_link = f"https://kdt-sw-4-team10.elicecoding.com/auth/verify?code={verification_code}"
 
     subject = "맛이슈 가입인증 이메일입니다."
     message = f"가입 인증을 완료하려면 다음 링크를 클릭하세요: {verification_link}"
