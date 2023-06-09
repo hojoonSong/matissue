@@ -178,10 +178,10 @@ class RecipeUpdate(BaseModel):
     recipe_ingredients: Optional[List[Ingredients]]
     recipe_sequence: Optional[List[SequenceItem]]
     recipe_tip: Optional[str]
-    user_nickname: Optional[str] = Field(default='test')
+    user_nickname: Optional[str] = Field(const=True)
     recipe_id: str = Field(default_factory=lambda: generate(), const=True)
     recipe_view: int = Field(default=0, const=True)
-    user_id: str = Field(default='test', const=True)
+    user_id: str = Field(const=True)
     created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     recipe_like: int = Field(default=0, const=True)
@@ -269,18 +269,21 @@ class RecipeLike(RecipeBase):
 
 
 class CommentBase(BaseModel):
-    comment_author: str = Field(default='test')
-    comment_nickname: str = Field(default='test')
-    comment_profile_img: str = Field(default='test')
+    comment_author: str
+    comment_nickname: str
+    comment_profile_img: str
     comment_text: str
     comment_like: int = Field(default=0)
-    comment_id: str = Field(default_factory=lambda: generate(), const=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow, const=True)
-    comment_parent: str = Field(default='test')
+    comment_id: str = Field(default_factory=lambda: generate())
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    comment_parent: str
 
 
-class CommentUpdate(CommentBase):
+class CommentUpdate(BaseModel):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    comment_nickname: Optional[str]
+    comment_profile_img: Optional[str]
+    comment_text: Optional[str]
 
     class Config:
         schema_extra = {
@@ -291,7 +294,7 @@ class CommentUpdate(CommentBase):
 
 
 class CommentIn(BaseModel):
-    comment_text: str = Field(default='test')
+    comment_text: str
 
     class Config:
         schema_extra = {

@@ -221,25 +221,17 @@ async def update_like(recipe_id: str):
 
 @router.get("/comment/{comment_id}", tags=["comment"])
 async def get_comments(comment_id: str):
-    try:
-        result = await recipe_service.get_one_comment(comment_id)
-        if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to find comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=200)
-    except Exception as e:
+    result = await recipe_service.get_one_comment(comment_id)
+    if result is None:
         raise HTTPException(
-            status_code=404, detail=str(e))
+            status_code=500, detail="Failed to find comment")
+    serialized_comment = json.loads(json.dumps(result, default=str))
+    return JSONResponse(content=serialized_comment, status_code=200)
 
 
 @router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201, tags=["comment"])
 async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
     try:
-        # comment_dict = comment.copy()
-        # print(comment_dict)
-        # comment_dict["comment_author"] = current_user
-        # print(comment_dict)
         result = await recipe_service.register_comment(recipe_id, comment, current_user)
         if result is None:
             raise HTTPException(
@@ -255,7 +247,7 @@ async def register_comment(recipe_id: str, comment: CommentIn, current_user: str
 async def delete_comment(comment_id: str, current_user: str = Depends(get_current_session)):
     try:
         result = await recipe_service.delete_comment(comment_id, current_user)
-        if result is None:
+        if result is 0:
             raise HTTPException(
                 status_code=500, detail="Failed to delete comment")
         return Response(status_code=204)
@@ -265,17 +257,18 @@ async def delete_comment(comment_id: str, current_user: str = Depends(get_curren
 
 
 @router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
-async def update_comment(comment_id: str, comment: CommentUpdate, current_user: str = Depends(get_current_session)):
+async def update_comment(comment_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)) -> CommentUpdate:
     try:
         result = await recipe_service.update_comment(comment_id, comment, current_user)
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to update comment")
+
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=str(e))
+            status_code=404, detail=f"Controller:Failed to update comment{str(e)}")
 
 
 # 페이지네이션

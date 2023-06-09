@@ -143,12 +143,17 @@ class RecipeService:
     async def get_one_comment(self, comment_id):
         try:
             result = await self.recipe_dao.get_one_comment(comment_id)
+            if result is None:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Comment not found"
+                )
             return result
         except Exception as e:
-            logger.error(f"Failed to get one comment: {str(e)}")
+            logger.error(f"댓글이 존재 하지 않습니다: {str(e)}")
             raise HTTPException(
-                status_code=500,
-                detail="Failed to get one comment"
+                status_code=404,
+                detail="댓글이 존재 하지 않습니다"
             )
 
      # post
@@ -225,7 +230,7 @@ class RecipeService:
             result = await self.recipe_dao.update_comment(comment_id, comment, current_user)
             return result
         except Exception as e:
-            logger.error(f"Failed to update comment: {str(e)}")
+            logger.error(f"service : Failed to update comment: {str(e)}")
             raise HTTPException(
                 status_code=500,
                 detail="Failed to update comment"
@@ -257,7 +262,9 @@ class RecipeService:
 
     async def delete_comment(self, comment_id, current_user):
         try:
+            print(comment_id)
             result = await self.recipe_dao.delete_comment(comment_id, current_user)
+            print(result)
             return result
         except Exception as e:
             logger.error(f"Failed to delete comment: {str(e)}")

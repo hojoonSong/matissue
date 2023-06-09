@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from pymongo import ReturnDocument
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.recipe_models import CommentBase, RecipeBase, RecipeView, RecipeLike, RecipeCreate
+from models.recipe_models import CommentBase, CommentUpdate, RecipeBase, RecipeView, RecipeLike, RecipeCreate
 from datetime import datetime
 settings = get_settings()
 
@@ -152,43 +152,58 @@ class RecipeDao:
 
     async def register_comment(self, recipe_id, comment: CommentBase, current_user):
         user = await self.user_collection.find_one({"user_id": current_user})
-        comment_author = recipe_id
+        comment_author = current_user
         comment_nickname = user["username"]
         comment_parent = recipe_id
-        comment_text = comment
-        comment_profile = user
-        print(user)
-        # comment_profile_img
+        comment_text = comment.comment_text
+        comment_profile_img = user["img"]
+
         comment_base = CommentBase(
             comment_author=comment_author,
             comment_text=comment_text,
             comment_parent=comment_parent,
             comment_nickname=comment_nickname,
-            comment_profile=comment_profile
+            comment_profile_img=comment_profile_img
         )
         await self.comment_collection.insert_one(comment_base.dict())
         inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
+        print('inserted_data: ', inserted_data)
         return inserted_data
 
-    async def update_comment(self, comment_id, modified_comment: CommentBase, current_user):
+    async def update_comment(self, comment_id, modified_comment, current_user):
         existing_comment = await self.comment_collection.find_one({"comment_id": comment_id})
+        if existing_comment:
+            current_user = existing_comment['comment_author']
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail="댓글이 존재하지 않습니다"
+            )
         if existing_comment['comment_author'] != current_user:
             raise HTTPException(
                 status_code=403,
                 detail="You are not authorized to update this comment"
             )
+        print('modified_comment: ', modified_comment)
+        user = await self.user_collection.find_one({"user_id": current_user})
+        comment_nickname = user["username"]
+        comment_profile_img = user["img"]
+        comment_text = modified_comment.comment_text
+        update_data = CommentUpdate(
+            comment_text=comment_text,
+            comment_nickname=comment_nickname,
+            comment_profile_img=comment_profile_img
+        )
+        print('update_data: ', update_data)
         updated_comment = await self.comment_collection.find_one_and_update(
             {"comment_id": comment_id},
-            {"$set": {
-                "comment_text": modified_comment.comment_text,
-                "updated_at": datetime.utcnow()
-            }},
+            {"$set": update_data.dict()},
             return_document=ReturnDocument.AFTER
         )
+        print('updated_comment: ', updated_comment)
         return updated_comment
 
     async def delete_comment(self, comment_id: str, current_user):
-        print(comment_id)
         existing_comment = await self.comment_collection.find_one({"comment_id": comment_id})
         if existing_comment is None:
             raise HTTPException(
@@ -201,7 +216,7 @@ class RecipeDao:
                 detail="You are not authorized to delete this comment"
             )
         result = await self.comment_collection.delete_one({"comment_id": comment_id})
-        print(result)
+        print('dao', result)
         if result.deleted_count == 1:
             return 1  # 문서가 성공적으로 삭제되었을 경우
         else:
