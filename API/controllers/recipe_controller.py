@@ -26,7 +26,7 @@ async def get_all_recipes():
         recipes = await recipe_service.get_all_recipes()
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -38,7 +38,7 @@ async def get_recipes_by_categories(value: str = Query(...)):
         recipes = await recipe_service.get_recipes_by_categories(value)
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -62,7 +62,7 @@ async def search_recipes_by_title(value: str):
     async for document in result_cursor:
         result.append(json_util.loads(json_util.dumps(document)))
     if len(result) == 0:
-        return JSONResponse(content=[], status_code=404)
+        return JSONResponse(content=[])
     if not result:
         raise HTTPException(status_code=404, detail="No recipes found")
     serialized_recipes = json.loads(json.dumps(result, default=str))
@@ -73,7 +73,7 @@ async def search_recipes_by_title(value: str):
 async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
     recipes = await recipe_service.get_recipes_by_user_id(current_user)
     if len(recipes) == 0:
-        return JSONResponse(content=[], status_code=404)
+        return JSONResponse(content=[])
     if recipes:
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return RecipeGetList(recipes=recipes)
@@ -87,7 +87,7 @@ async def get_recipes_by_popularity():
         recipes = await recipe_service.get_recipes_by_popularity()
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(
@@ -100,7 +100,7 @@ async def get_recipes_by_latest():
         recipes = await recipe_service.get_recipes_by_latest()
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(
@@ -113,7 +113,7 @@ async def get_recipes_by_single_serving():
         recipes = await recipe_service.get_recipes_by_single_serving()
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(
@@ -126,7 +126,7 @@ async def get_recipes_by_vegetarian():
         recipes = await recipe_service.get_recipes_by_vegetarian()
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(
@@ -139,7 +139,7 @@ async def get_recipes_by_ingredients(value: str):
         recipes = await recipe_service.get_recipes_by_ingredients(value)
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
-            return JSONResponse(content=[], status_code=404)
+            return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(
