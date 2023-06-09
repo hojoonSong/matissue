@@ -20,16 +20,16 @@ class RecipeDao:
     # get
 
     async def get_all_recipes(self):
-        cursor = self.collection.find({})
+        cursor = self.collection.find({}).sort("created_at", -1)
         result = await cursor.to_list(length=None)
         return result
 
     async def get_recipes_by_categories(self, category):
-        result = await self.collection.find({"recipe_category": category}).to_list(length=None)
+        result = await self.collection.find({"recipe_category": category}).sort("created_at", -1).to_list(length=None)
         return result
 
     async def get_recipes_by_popularity(self):
-        results = await self.collection.find({"recipe_like": {"$gte": 10}}).to_list(length=None)
+        results = await self.collection.find({"recipe_like": {"$gte": 10}}).sort("created_at", -1).to_list(length=None)
         return results
 
     async def get_recipes_by_latest(self):
@@ -37,15 +37,15 @@ class RecipeDao:
         return results
 
     async def get_recipes_by_single_serving(self):
-        results = await self.collection.find({"recipe_info.serving": 1}).to_list(length=None)
+        results = await self.collection.find({"recipe_info.serving": 1}).sort("created_at", -1).to_list(length=None)
         return results
 
     async def get_recipes_by_vegetarian(self):
-        results = await self.collection.find({"recipe_category": "vegetarian"}).to_list(length=None)
+        results = await self.collection.find({"recipe_category": "vegetarian"}).sort("created_at", -1).to_list(length=None)
         return results
 
     async def get_recipes_by_ingredients(self, value):
-        results = await self.collection.find({"recipe_ingredients.name": value}).to_list(length=None)
+        results = await self.collection.find({"recipe_ingredients.name": value}).sort("created_at", -1).to_list(length=None)
         return results
 
     async def get_recipe_by_recipe_id(self, id):
@@ -63,7 +63,7 @@ class RecipeDao:
     async def get_recipes_by_user_id(self, user_id):
         result = await self.collection.find(
             {"user_id": user_id}
-        ).to_list(length=None)
+        ).sort("created_at", -1).to_list(length=None)
         return result
 
     async def get_comments(self, recipe_id):
