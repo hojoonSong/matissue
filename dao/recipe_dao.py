@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from pymongo import ReturnDocument
 from utils.config import get_settings
 from utils.db_manager import MongoDBManager
-from models.recipe_models import CommentBase, CommentUpdate, RecipeBase, RecipeView, RecipeLike, RecipeCreate
+from models.recipe_models import CommentBase, CommentUpdate, RecipeBase, RecipeUpdate, RecipeView, RecipeLike, RecipeCreate
 from datetime import datetime
 settings = get_settings()
 
@@ -91,17 +91,28 @@ class RecipeDao:
 
     # update
 
-    async def update_recipe(self, recipe_id: str, updated_recipe: RecipeBase, current_user):
+    async def update_recipe(self, recipe_id: str, updated_recipe, current_user):
         existing_recipe = await self.collection.find_one({"recipe_id": recipe_id})
         if existing_recipe['user_id'] != current_user:
             raise HTTPException(
                 status_code=403,
                 detail="작성자가 아닐 시 수정이 불가합니다."
             )
-        updated_recipe_dict = updated_recipe.dict(exclude={"recipe_id"})
+        modified_recipe = RecipeUpdate(
+            recipe_title=updated_recipe.recipe_title,
+            recipe_thumbnail=updated_recipe.recipe_thumbnail,
+            recipe_video=updated_recipe.recipe_video,
+            recipe_description=updated_recipe.recipe_description,
+            recipe_category=updated_recipe.recipe_category,
+            recipe_info=updated_recipe.recipe_info,
+            recipe_ingredients=updated_recipe.recipe_ingredients,
+            recipe_sequence=updated_recipe.recipe_sequence,
+            recipe_tip=updated_recipe.recipe_tip,
+            user_nickname=existing_recipe["user_nickname"]
+        )
         updated_document = await self.collection.find_one_and_update(
             {"recipe_id": recipe_id},
-            {"$set": updated_recipe_dict},
+            {"$set": modified_recipe.dict()},
             return_document=ReturnDocument.AFTER
         )
         if updated_document is None:
@@ -110,6 +121,7 @@ class RecipeDao:
                 detail=f"Recipe with id {recipe_id} not found"
             )
         return updated_document
+
     # delete
 
     async def delete_one_recipe(self, recipe_id: str, current_user):
@@ -165,6 +177,7 @@ class RecipeDao:
             comment_nickname=comment_nickname,
             comment_profile_img=comment_profile_img
         )
+
         await self.comment_collection.insert_one(comment_base.dict())
         inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
         print('inserted_data: ', inserted_data)

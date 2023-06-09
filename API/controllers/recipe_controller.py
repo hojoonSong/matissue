@@ -191,6 +191,7 @@ async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_
 
 @router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)], tags=["recipes"])
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_user: str = Depends(get_current_session)):
+    print(current_user)
     try:
         existing_recipe = await recipe_service.get_recipe_to_update_recipe(recipe_id)
         if existing_recipe is None:
@@ -198,19 +199,9 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_us
                 status_code=404,
                 detail=f"Recipe with id {recipe_id} not found"
             )
-        # 원래 가지고 있는 값으로 업데이트할 필드들 설정
-        updated_recipe.recipe_id = existing_recipe.recipe_id
-        updated_recipe.recipe_view = existing_recipe.recipe_view
-        updated_recipe.user_id = existing_recipe.user_id
-        updated_recipe.created_at = existing_recipe.created_at
-        updated_recipe.recipe_like = existing_recipe.recipe_like
         updated_document = await recipe_service.update_recipe(recipe_id, updated_recipe, current_user)
-        updated_document_dict = updated_document.copy()
-        updated_document_dict.pop("_id")  # ObjectId 필드 삭제
-        updated_document_dict["created_at"] = updated_document_dict["created_at"].isoformat(
-        )
         serialized_recipe = json.loads(
-            json.dumps(updated_document_dict, default=str))
+            json.dumps(updated_document, default=str))
         return JSONResponse(content=serialized_recipe, status_code=201)
     except HTTPException as e:
         raise HTTPException(
