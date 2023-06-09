@@ -147,7 +147,7 @@ async def get_users(
 @router.post("/subscription/{follow_user_id}", dependencies=[Depends(get_current_session)], responses=common_responses)
 async def toggle_subscription(follow_user_id: str, subscribe: bool = True, current_user: str = Depends(get_current_session)):
     if current_user == follow_user_id:
-        raise HTTPException(status_code=400, detail="본인을 구독 할 수 없습니다.")
+        raise HTTPException(status_code=400, detail="자기 자신을 구독 할 수 없습니다.")
     try:
         await user_service.modify_subscribe_user(current_user, follow_user_id, subscribe)
         if subscribe:
