@@ -1,16 +1,20 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
 from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
+from models.notification_models import NotificationIn
 from models.response_models import LoginResponse, LoginRequest, MessageResponse, FollowsResponse
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from typing import List
+from datetime import datetime
 from utils.session_manager import SessionManager, get_current_session
 from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
 from utils.email_manager import send_email
+from utils.websocket_manager import WebSocketManager
 
 router = APIRouter()
 user_dao = UserDao()
+websocket_manager = WebSocketManager()
 user_service = UserService(user_dao)
 session_manager = SessionManager()
 
@@ -151,6 +155,9 @@ async def toggle_subscription(follow_user_id: str, subscribe: bool = True, curre
     try:
         await user_service.modify_subscribe_user(current_user, follow_user_id, subscribe)
         if subscribe:
+            notification = NotificationIn(
+                user_id=follow_user_id, message=f"{current_user} 님이 회원님을 팔로우하기 시작했습니다.", timestamp=datetime.now())
+            await websocket_manager.send_message(follow_user_id, notification)
             return {"message": "구독 완료"}
         else:
             return {"message": "구독 취소 완료"}
