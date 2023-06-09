@@ -69,6 +69,8 @@ class UserUpdate(UserBase):
 
     @validator('password')
     def validate_password(cls, password: str):
+        if password is None:
+            return password
         if len(password) < 8 or not re.search("\d", password) or not re.search("[A-Z]", password) or not re.search("[a-z]", password):
             raise HTTPException(
                 status_code=400, detail='비밀번호는 8글자 이상, 숫자와 대소문자를 혼용하여야 합니다.')

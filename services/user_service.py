@@ -55,8 +55,8 @@ class UserService:
             raise HTTPException(
                 status_code=400, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
 
-        hashed_password = await Hasher.get_hashed_password(user.password)
         if user.password:
+            hashed_password = await Hasher.get_hashed_password(user.password)
             user_in_db = UserInDB(
                 **user.dict(exclude={'password'}),
                 hashed_password=hashed_password,
@@ -68,7 +68,6 @@ class UserService:
                 hashed_password=existing_user.hashed_password,
                 created_at=datetime.now()
             )
-
         await self.user_dao.update_user_in_db(user_in_db)
         return True
 
