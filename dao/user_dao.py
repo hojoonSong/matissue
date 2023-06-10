@@ -16,7 +16,9 @@ class UserDao:
         return str(result.inserted_id)
 
     async def update_user_in_db(self, user_in_db: UserInDB):
-        result = await self.collection.replace_one({"user_id": user_in_db.user_id}, user_in_db.dict())
+        result = await self.collection.replace_one(
+            {"user_id": user_in_db.user_id}, user_in_db.dict()
+        )
         return result.modified_count == 1
 
     async def delete_user(self, user_id: str):
@@ -42,13 +44,17 @@ class UserDao:
         return None
 
     async def get_user_by_email_and_birthdate(self, email: str, birthdate: str):
-        user_doc = await self.collection.find_one({"email": email, "birthdate": birthdate})
+        user_doc = await self.collection.find_one(
+            {"email": email, "birthdate": birthdate}
+        )
         if user_doc:
             return UserInDB(**user_doc)
         return None
 
     async def get_user_by_id_and_birthdate(self, user_id: str, birthdate: str):
-        user_doc = await self.collection.find_one({"user_id": user_id, "birthdate": birthdate})
+        user_doc = await self.collection.find_one(
+            {"user_id": user_id, "birthdate": birthdate}
+        )
         if user_doc:
             return UserInDB(**user_doc)
         return None
@@ -61,18 +67,24 @@ class UserDao:
         return users
 
     async def get_user_by_email_and_birthdate(self, email: str, birthdate: str):
-        user_doc = await self.collection.find_one({"email": email, "birth_date": birthdate})
+        user_doc = await self.collection.find_one(
+            {"email": email, "birth_date": birthdate}
+        )
         if user_doc:
             return UserInDB(**user_doc)
         return None
 
     async def get_user_by_id_and_birthdate(self, user_id: str, birthdate: str):
-        user_doc = await self.collection.find_one({"user_id": user_id, "birth_date": birthdate})
+        user_doc = await self.collection.find_one(
+            {"user_id": user_id, "birth_date": birthdate}
+        )
         if user_doc:
             return UserInDB(**user_doc)
         return None
 
-    async def modify_subscription(self, current_user: str, follow_user_id: str, subscribe: bool) -> None:
+    async def modify_subscription(
+        self, current_user: str, follow_user_id: str, subscribe: bool
+    ) -> None:
         user = await self.get_user_by_id(current_user)
         follow_user = await self.get_user_by_id(follow_user_id)
 
@@ -101,11 +113,13 @@ class UserDao:
         people = []
         async for doc in docs:
             person = UserInDB(**doc)
-            people.append({
-                "user_id": person.user_id,
-                "username": person.username,
-                "img": person.img
-            })
+            people.append(
+                {
+                    "user_id": person.user_id,
+                    "username": person.username,
+                    "img": person.img,
+                }
+            )
         return people
 
     async def get_fans(self, user_id: str):

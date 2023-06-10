@@ -1,6 +1,6 @@
 from fastapi import Depends, HTTPException, status, Header, Request
 from pydantic import BaseModel
-from models.user_models import UserInDB
+from models.user_models import UserInDB, UserIn
 from typing import Optional
 from .config import get_settings
 from .hash_manager import Hasher
@@ -23,7 +23,8 @@ class Session(BaseModel):
 class SessionManager:
     def __init__(self):
         self.redis_client = redis.Redis.from_url(
-            settings.redis_url, decode_responses=True)
+            settings.redis_url, decode_responses=True
+        )
 
     def create_session(self, data: str):
         session_id = str(uuid.uuid4())
@@ -55,13 +56,13 @@ class SessionManager:
         self.redis_client.delete(code)
         return email
 
-    async def save_user_info(self, user: UserInDB):
+    async def save_user_info(self, user: UserIn):
         print(user)
         hashed_password = await Hasher.get_hashed_password(user.password)
         user_in_redis = UserInDB(
-            **user.dict(exclude={'password'}),
+            **user.dict(exclude={"password"}),
             hashed_password=hashed_password,
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
         print(user_in_redis)
         user_json = user_in_redis.json()
@@ -72,13 +73,12 @@ class SessionManager:
         if user_json is None:
             return None
         user_in_redis = UserInDB.parse_raw(user_json)
-        return UserInDB(**user_in_redis.dict(),
-                        password=user_in_redis.hashed_password
-                        )
+        return UserInDB(**user_in_redis.dict(), password=user_in_redis.hashed_password)
 
     def create_email_verification_code(self, email: str):
-        verification_code = ''.join(random.choices(
-            string.ascii_uppercase + string.digits, k=6))
+        verification_code = "".join(
+            random.choices(string.ascii_uppercase + string.digits, k=6)
+        )
         self.redis_client.set(verification_code, email, ex=1800)
         return verification_code
 
@@ -105,11 +105,13 @@ def get_current_session(request: Request) -> str:
     return current_user
 
 
-async def get_current_user(session: Session = Depends(), session_manager: SessionManager = Depends(SessionManager)):
+async def get_current_user(
+    session: Session = Depends(),
+    session_manager: SessionManager = Depends(SessionManager),
+):
     if session.id is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sesssion ID가 없습니다."
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesssion ID가 없습니다."
         )
     user_id = session_manager.get_session(session.id)
     if user_id is None:
@@ -120,9 +122,10 @@ async def get_current_user(session: Session = Depends(), session_manager: Sessio
     return user_id
 
 
-async def verify_email(code: str, session_manager: SessionManager = Depends(SessionManager)):
+async def verify_email(
+    code: str, session_manager: SessionManager = Depends(SessionManager)
+):
     verification_result = session_manager.verify_email(code)
     if not verification_result:
-        raise HTTPException(
-            status_code=400, detail="Invalid verification code")
+        raise HTTPException(status_code=400, detail="Invalid verification code")
     return {"message": "Email verification successful"}
