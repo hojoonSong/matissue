@@ -134,7 +134,7 @@ class RecipeCreate(RecipeBase):
     user_id: Optional[str]
     user_nickname: Optional[str] = Field(default='test')
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    recipe_like: int = Field(default=0)
+    recipe_like: Optional[List[str]] = []
 
     class Config:
         schema_extra = {
@@ -233,7 +233,7 @@ class RecipeGetItem(BaseModel):
     user_id: str
     user_nickname: str
     created_at: datetime
-    recipe_like: int
+    recipe_like: Optional[List[str]] = []
 
     class Config:
         schema_extra = {
@@ -259,7 +259,7 @@ class RecipeView(RecipeBase):
 
 
 class RecipeLike(RecipeBase):
-    recipe_like: int
+    recipe_like: Optional[List[str]] = []
 
 
 class CommentBase(BaseModel):
