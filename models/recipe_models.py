@@ -303,4 +303,4 @@ class CommentsList(BaseModel):
 
 
 class CommentLike(BaseModel):
-    comment_like: int
+    comment_like: Optional[List[str]] = []

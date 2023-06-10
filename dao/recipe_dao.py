@@ -213,6 +213,20 @@ class RecipeDao:
         )
         return updated_comment
 
+    async def update_comment_like(self, comment_id, current_user):
+        existing_comment = await self.comment_collection.find_one({"comment_id": comment_id})
+        comment_like = existing_comment.get("comment_like", [])
+        if current_user in comment_like:
+            comment_like.remove(current_user)
+        else:
+            comment_like.append(current_user)
+        updated_comment = await self.comment_collection.find_one_and_update(
+            {"comment_id": comment_id},
+            {"$set": {"comment_like": comment_like}},
+            return_document=ReturnDocument.AFTER
+        )
+        return updated_comment
+
     async def delete_comment(self, comment_id: str, current_user):
         existing_comment = await self.comment_collection.find_one({"comment_id": comment_id})
         if existing_comment is None:
@@ -230,9 +244,6 @@ class RecipeDao:
             return 1  # 문서가 성공적으로 삭제되었을 경우
         else:
             return 0  # 문서 삭제 실패
-
-    async def update_comment_likes(self):
-        return 'hi'
 
     #    페이지 네이션
     #     return result

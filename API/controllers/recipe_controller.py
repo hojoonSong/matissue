@@ -279,6 +279,19 @@ async def update_comment(comment_id: str, comment: CommentIn, current_user: str 
             status_code=404, detail=f"Controller:Failed to update comment{str(e)}")
 
 
+@router.patch("/comment/{comment_id}/like", dependencies=[Depends(get_current_session)], tags=["comment"])
+async def update_comment_like(comment_id: str, current_user: str = Depends(get_current_session)) -> CommentUpdate:
+    try:
+        result = await recipe_service.update_comment_like(comment_id, current_user)
+        if result is None:
+            raise HTTPException(
+                status_code=500, detail="Failed to update comment")
+        serialized_comment = json.loads(json.dumps(result, default=str))
+        return JSONResponse(content=serialized_comment, status_code=201)
+    except Exception as e:
+        raise HTTPException(
+            status_code=404, detail=f"Controller:Failed to update comment{str(e)}")
+
 # 페이지네이션
 # @router.get("/")
 # async def get_all_recipes(page: int = Query(1, ge=1), limit: int = Query(16, ge=1, le=100)):
