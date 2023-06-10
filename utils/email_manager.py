@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from fastapi import HTTPException
 from .config import get_settings
 
 settings = get_settings()
@@ -30,13 +31,9 @@ def send_email(receiver_email, subject, message):
         return {"error": f"Failed to send email: {error_message}"}
 
 
-# # 이메일 보내기
-# receiver_email = "bmp.tom@yahoo.com"
-# subject = "Test Email"
-# message = "This is a test email from Python."
-
-# result = send_email(receiver_email, subject, message)
-# if "error" in result:
-#     print(result["error"])
-# else:
-#     print(result["status"])
+def send_verification_email(email: str, verification_link: str) -> None:
+    subject = "맛이슈 가입인증 이메일입니다."
+    message = f"가입 인증을 완료하려면 다음 링크를 클릭하세요: {verification_link} 이 이메일 인증 코드는 24시간 동안만 유효합니다."
+    result = send_email(email, subject, message)
+    if "error" in result:
+        raise HTTPException(status_code=500, detail="이메일 전송 실패")

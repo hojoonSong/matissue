@@ -87,6 +87,12 @@ class SessionManager:
         return verified_email == email
 
 
+def get_verification_link(email: str, verification_code: str) -> str:
+    base_url = "https://kdt-sw-4-team10.elicecoding.com/auth/verify"
+    verification_link = f"{base_url}?code={verification_code}"
+    return verification_link
+
+
 def get_current_session(request: Request) -> str:
     session_id = request.cookies.get("session-id")
     session_manager = SessionManager()
