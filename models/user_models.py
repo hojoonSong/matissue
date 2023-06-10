@@ -10,8 +10,9 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     birth_date: str
-    img: Optional[str] = None
-    follows: Optional[List[str]] = []
+    img: str
+    subscriptions: Optional[List[str]] = []
+    fans: Optional[List[str]] = []
 
 
 class UserIn(UserBase):

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class LoginResponse(BaseModel):
@@ -24,5 +24,11 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-class FollowsResponse(BaseModel):
-    follows: List[str]
+class Customer(BaseModel):
+    user_id: str
+    username: str
+    img: str
+
+
+class PeopleResponse(BaseModel):
+    people: List[Customer]

@@ -1,7 +1,7 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
 from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
-from models.response_models import LoginResponse, LoginRequest, MessageResponse, FollowsResponse
+from models.response_models import LoginResponse, LoginRequest, MessageResponse, PeopleResponse
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
 from typing import List
 from utils.session_manager import SessionManager, get_current_session
@@ -161,6 +161,17 @@ async def toggle_subscription(follow_user_id: str, subscribe: bool = True, curre
             raise
 
 
-@router.get("/{user_id}/followers", response_model=List[FollowsResponse], responses=common_responses)
-async def get_followers(user_id: str):
-    return await user_service.get_followers(user_id)
+@router.get("/subscription/status/{follow_user_id}", dependencies=[Depends(get_current_session)], responses=common_responses)
+async def check_subscription_status(follow_user_id: str, current_user: str = Depends(get_current_session)):
+    is_subscribed = await user_service.is_user_subscribed(current_user, follow_user_id)
+    return {"is_subscribed": is_subscribed}
+
+
+@router.get("/{user_id}/fans", response_model=PeopleResponse, responses=common_responses)
+async def get_fans(user_id: str):
+    return {"people": await user_service.get_fans(user_id)}
+
+
+@router.get("/{user_id}/subscriptions", response_model=PeopleResponse, responses=common_responses)
+async def get_subscriptions(user_id: str):
+    return {"people": await user_service.get_subscriptions(user_id)}

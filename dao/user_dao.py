@@ -80,25 +80,45 @@ class UserDao:
             raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
 
         if subscribe:
-            if follow_user_id in user.follows:
+            if follow_user_id in user.fans:
                 raise HTTPException(status_code=409, detail="이미 구독 중입니다")
             else:
-                user.follows.append(follow_user_id)
+                user.subscriptions.append(follow_user_id)
+                follow_user.fans.append(current_user)
 
         else:
-            if follow_user_id in user.follows:
-                user.follows.remove(follow_user_id)
+            if follow_user_id in user.subscriptions:
+                user.subscriptions.remove(follow_user_id)
+                follow_user.fans.remove(current_user)
             else:
                 raise HTTPException(status_code=409, detail="구독을 취소할 수 없습니다.")
 
         await self.update_user_in_db(user)
+        await self.update_user_in_db(follow_user)
 
-    async def get_followers(self, user_id: str):
-        follower_docs = self.collection.find({"follows": user_id})
-        followers = []
-        async for follower_doc in follower_docs:
-            followers.append(UserInDB(**follower_doc))
-        return followers
+    async def get_people(self, user_id: str, field: str):
+        docs = self.collection.find({field: user_id})
+        people = []
+        async for doc in docs:
+            person = UserInDB(**doc)
+            people.append({
+                "user_id": person.user_id,
+                "username": person.username,
+                "img": person.img
+            })
+        return people
+
+    async def get_fans(self, user_id: str):
+        return await self.get_people(user_id, "fans")
+
+    async def get_subscriptions(self, user_id: str):
+        return await self.get_people(user_id, "subscriptions")
+
+    async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
+        user = await self.get_user_by_id(current_user)
+        if not user:
+            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+        return follow_user_id in user.subscriptions
 
 
 def get_user_dao() -> UserDao:
