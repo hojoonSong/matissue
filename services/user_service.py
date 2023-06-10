@@ -110,7 +110,7 @@ class UserService:
 
         user = await self.user_dao.get_user_by_id(user_id)
         if not user:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise HTTPException(status_code=401, detail="사용자를 찾을 수 없습니다.")
 
         if not Hasher.verify_password(password, user.hashed_password):
             failed_key = f"failed:{user_id}"
@@ -118,20 +118,20 @@ class UserService:
             if failed_attempts >= MAX_LOGIN_ATTEMPTS:
                 redis_client.set(timeout_key, "1", LOGIN_TIMEOUT)
                 redis_client.delete(failed_key)
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+            raise HTTPException(status_code=401, detail="로그인에 실패하였습니다.")
 
         session_id = self.session_manager.create_session(user.user_id)
         return {"session_id": session_id}
 
     async def logout(self, session_id: str, response: Response):
         if session_id is None:
-            raise HTTPException(status_code=400, detail="세션 ID를 찾을 수 없습니다.")
+            raise HTTPException(status_code=400, detail="로그인 정보를 찾을 수 없습니다.")
 
         response.delete_cookie(key="session_id")
         session = await self.session_manager.delete_session(session_id)
 
         if not session:
-            return {"detail": "세션 ID가 없거나 이미 로그아웃되었습니다."}
+            return {"detail": "로그인 정보가 없거나 이미 로그아웃되었습니다."}
 
         return {"detail": "성공적으로 로그아웃되었습니다."}
 
