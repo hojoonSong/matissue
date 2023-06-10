@@ -150,14 +150,19 @@ class RecipeDao:
         result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
         return result.modified_count
 
-    async def update_recipe_like(self, recipe_id: str):
-        update_query = {"$inc": {"recipe_like": 1}}
-        result = await self.collection.update_one({"recipe_id": recipe_id}, update_query)
-        if result.modified_count > 0:
-            updated_recipe = await self.collection.find_one({"recipe_id": recipe_id})
-            return updated_recipe
+    async def update_recipe_like(self, recipe_id: str, current_user):
+        existing_recipe = await self.collection.find_one({"recipe_id": recipe_id})
+        recipe_like = existing_recipe.get("recipe_like", [])
+        if current_user in recipe_like:
+            recipe_like.remove(current_user)
         else:
-            return None
+            recipe_like.append(current_user)
+        updated_comment = await self.collection.find_one_and_update(
+            {"recipe_id": recipe_id},
+            {"$set": {"recipe_like": recipe_like}},
+            return_document=ReturnDocument.AFTER
+        )
+        return updated_comment
 
     async def get_one_comment(self, comment_id):
         result = await self.comment_collection.find_one({"comment_id": comment_id})
@@ -170,7 +175,6 @@ class RecipeDao:
         comment_parent = recipe_id
         comment_text = comment.comment_text
         comment_profile_img = user["img"]
-
         comment_base = CommentBase(
             comment_author=comment_author,
             comment_text=comment_text,
@@ -178,7 +182,6 @@ class RecipeDao:
             comment_nickname=comment_nickname,
             comment_profile_img=comment_profile_img
         )
-
         await self.comment_collection.insert_one(comment_base.dict())
         inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
         return inserted_data

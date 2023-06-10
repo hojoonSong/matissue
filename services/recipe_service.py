@@ -214,9 +214,9 @@ class RecipeService:
                 detail="Failed to update recipe view"
             )
 
-    async def update_recipe_like(self, recipe_id: str):
+    async def update_recipe_like(self, recipe_id: str, current_user):
         try:
-            result = await self.recipe_dao.update_recipe_like(recipe_id)
+            result = await self.recipe_dao.update_recipe_like(recipe_id, current_user)
             return result
         except Exception as e:
             logger.error(f"Failed to update recipe like: {str(e)}")

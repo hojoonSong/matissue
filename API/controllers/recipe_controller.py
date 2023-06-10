@@ -210,10 +210,10 @@ async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_us
         )
 
 
-@router.patch("/{recipe_id}/like", status_code=201, tags=["recipes"])
-async def update_like(recipe_id: str):
+@router.patch("/{recipe_id}/like", status_code=201, dependencies=[Depends(get_current_session)], tags=["recipes"])
+async def update_like(recipe_id: str, current_user: str = Depends(get_current_session)):
     try:
-        recipe = await recipe_service.update_recipe_like(recipe_id)
+        recipe = await recipe_service.update_recipe_like(recipe_id, current_user)
         if recipe is None:
             raise HTTPException(
                 status_code=404,
