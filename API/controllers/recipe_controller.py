@@ -272,7 +272,6 @@ async def update_comment(comment_id: str, comment: CommentIn, current_user: str 
         if result is None:
             raise HTTPException(
                 status_code=500, detail="Failed to update comment")
-
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:

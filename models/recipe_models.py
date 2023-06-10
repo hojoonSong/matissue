@@ -300,3 +300,7 @@ class CommentIn(BaseModel):
 
 class CommentsList(BaseModel):
     recipes: List[CommentBase]
+
+
+class CommentLike(BaseModel):
+    comment_like: int
