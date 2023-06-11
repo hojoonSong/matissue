@@ -13,7 +13,6 @@ from utils.session_manager import (
     get_current_session,
     get_verification_link,
 )
-from utils.permission_manager import check_user_permissions
 from utils.response_manager import common_responses
 from utils.email_manager import send_verification_email
 
@@ -127,7 +126,7 @@ async def logout(request: Request, response: Response):
 async def get_user(current_user: str = Depends(get_current_session)):
     user_in_db = await user_dao.get_user_by_id(current_user)
     if not user_in_db:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
 
     return {
         "user_id": user_in_db.user_id,

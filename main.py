@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from API.routes.api_routes import api_router
-from utils.email_manager import send_email
 
 app = FastAPI()
 
@@ -25,10 +24,3 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
-
-# # 서버 실행 전에 이메일 전송 함수 실행
-# receiver_email = "bmp.tom@yahoo.com"
-# subject = "Test Email"
-# message = "This is a test email from FastAPI."
-
-# send_email(receiver_email, subject, message)

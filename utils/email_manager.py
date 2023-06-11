@@ -1,9 +1,11 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from fastapi.templating import Jinja2Templates
 from fastapi import HTTPException
 from .config import get_settings
 
+templates = Jinja2Templates(directory="templates")
 settings = get_settings()
 
 SMTP_SERVER = settings.smtp_server
@@ -12,13 +14,14 @@ SMTP_PASSWORD = settings.smtp_password
 SENDER_EMAIL = settings.sender_email
 
 
-def send_email(receiver_email, subject, message):
+def send_html_email(receiver_email, subject, template_name, template_context):
     msg = MIMEMultipart()
     msg["From"] = SENDER_EMAIL
     msg["To"] = receiver_email
     msg["Subject"] = subject
 
-    body = MIMEText(message, "plain")
+    html_content = templates.get_template(template_name).render(template_context)
+    body = MIMEText(html_content, "html")
     msg.attach(body)
 
     try:
@@ -33,7 +36,8 @@ def send_email(receiver_email, subject, message):
 
 def send_verification_email(email: str, verification_link: str) -> None:
     subject = "맛이슈 가입인증 이메일입니다."
-    message = f"가입 인증을 완료하려면 다음 링크를 클릭하세요: {verification_link} 이 이메일 인증 코드는 24시간 동안만 유효합니다."
-    result = send_email(email, subject, message)
+    template_name = "verification_email.html"
+    template_context = {"verification_link": verification_link}
+    result = send_html_email(email, subject, template_name, template_context)
     if "error" in result:
         raise HTTPException(status_code=500, detail="이메일 전송 실패")
