@@ -74,9 +74,9 @@ async def delete_user(
     current_user: str = Depends(get_current_session),
 ):
     session_id = request.cookies.get("session-id")
-    check_user_permissions(user.user_id, current_user)
+
     result = await user_service.delete_user(
-        user.user_id, user.password, str(session_id)
+        user.user_id, user.password, str(session_id), current_user
     )
     if not result:
         raise HTTPException(status_code=400, detail="사용자 탈퇴에 실패하였습니다.")

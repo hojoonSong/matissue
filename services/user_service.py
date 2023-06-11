@@ -32,7 +32,10 @@ class UserService:
         )
         return await cls.user_dao.create_user_in_db(user_in_db)
 
-    async def delete_user(self, user_id: str, password: str, session_id: str):
+    async def delete_user(
+        self, user_id: str, password: str, session_id: str, current_user: str
+    ):
+        check_user_permissions(user_id, current_user)
         user = await self.user_dao.get_user_by_id(user_id)
         if not user:
             raise HTTPException(status_code=404, detail=f"사용자 아이디가 존재하지 않습니다.")
