@@ -1,6 +1,6 @@
 from services.user_service import UserService
 from dao.user_dao import UserDao
-from models.user_models import UserUpdate, UserIn, UserOut, UserInDB
+from models.user_models import UserUpdate, UserIn, UserOut
 from models.response_models import (
     LoginResponse,
     LoginRequest,
@@ -8,7 +8,6 @@ from models.response_models import (
     PeopleResponse,
 )
 from fastapi import APIRouter, HTTPException, Response, Depends, Query, Request
-from typing import List
 from utils.session_manager import (
     SessionManager,
     get_current_session,
@@ -49,31 +48,18 @@ async def create_user(
 async def update_user(
     user: UserUpdate, current_user: str = Depends(get_current_session)
 ):
-    check_user_permissions(user.user_id, current_user)
-
-    current_user_in_db = await user_dao.get_user_by_id(user.user_id)
-
-    if (
-        current_user != "admin"
-        and user.email is not None
-        and user.email != current_user_in_db.email
-    ):
-        if not session_manager.check_verification_code(user.email, user.email_code):
-            raise HTTPException(status_code=400, detail="잘못된 인증 코드입니다.")
-
-    user_in_db = UserUpdate(**user.dict(), hashed_password="")
-    updated = await user_service.update_user(user_in_db, current_user)
-    if not updated:
-        raise HTTPException(status_code=400, detail="사용자 정보 업데이트에 실패하였습니다.")
-    updated_user = await user_dao.get_user_by_id(user.user_id)
-    return {
-        "user_id": updated_user.user_id,
-        "username": updated_user.username,
-        "email": updated_user.email,
-        "birth_date": updated_user.birth_date,
-        "img": updated_user.img,
-        "created_at": updated_user.created_at,
-    }
+    try:
+        updated_user = await user_service.update_user(user, current_user)
+        return {
+            "user_id": updated_user.user_id,
+            "username": updated_user.username,
+            "email": updated_user.email,
+            "birth_date": updated_user.birth_date,
+            "img": updated_user.img,
+            "created_at": updated_user.created_at,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.delete(

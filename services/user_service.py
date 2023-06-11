@@ -1,4 +1,4 @@
-from models.user_models import UserIn, UserInDB
+from models.user_models import UserIn, UserInDB, UserUpdate
 from utils.hash_manager import Hasher
 from utils.session_manager import SessionManager
 from datetime import datetime
@@ -43,19 +43,27 @@ class UserService:
         self.session_manager.delete_session(session_id)
         return await self.user_dao.delete_user(user_id)
 
-    async def update_user(self, user: UserInDB, current_user):
+    async def update_user(self, user: UserUpdate, current_user):
         check_user_permissions(user.user_id, current_user)
+        current_user_in_db = await self.user_dao.get_user_by_id(user.user_id)
+
+        if (
+            current_user != "admin"
+            and user.email is not None
+            and user.email != current_user_in_db.email
+        ):
+            if not self.session_manager.check_verification_code(
+                user.email, user.email_code
+            ):
+                raise Exception("잘못된 인증 코드입니다.")
+
         existing_user = await self.user_dao.get_user_by_id(user.user_id)
         if not existing_user:
-            raise HTTPException(
-                status_code=404, detail=f"사용자 아이디 '{user.user_id}'은 찾을 수 없습니다."
-            )
+            raise Exception(f"사용자 아이디 '{user.user_id}'은 찾을 수 없습니다.")
 
         existing_email_user = await self.user_dao.get_user_by_email(user.email)
         if existing_email_user and existing_email_user.user_id != user.user_id:
-            raise HTTPException(
-                status_code=400, detail=f"사용자 이메일 '{user.email}'은 사용할 수 없습니다."
-            )
+            raise Exception(f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
 
         if user.password:
             hashed_password = await Hasher.get_hashed_password(user.password)
@@ -70,8 +78,10 @@ class UserService:
                 hashed_password=existing_user.hashed_password,
                 created_at=datetime.now(),
             )
+
         await self.user_dao.update_user_in_db(user_in_db)
-        return True
+        updated_user = await self.user_dao.get_user_by_id(user.user_id)
+        return updated_user
 
     async def login(self, user_id: str, password: str):
         timeout_key = f"timeout:{user_id}"
