@@ -72,7 +72,7 @@ async def send_verification_code(email: str):
     subject = "맛이슈 이메일 인증 이메일입니다."
 
     # HTML 템플릿 렌더링
-    template_name = "eamil_verification_code.html"
+    template_name = "email_verification_code.html"
     template_context = {"verification_code": verification_code}
 
     result = send_html_email(email, subject, template_name, template_context)
