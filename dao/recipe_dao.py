@@ -29,7 +29,22 @@ class RecipeDao:
         return result
 
     async def get_recipes_by_popularity(self):
-        results = await self.collection.find({"recipe_like": {"$gte": 10}}).sort("created_at", -1).to_list(length=None)
+        pipeline = [
+            {
+                "$addFields": {
+                    "recipe_like_length": { "$size": "$recipe_like" }
+                }
+            },
+            {
+                "$sort": { "recipe_like_length": -1 }
+            },
+            {
+                "$project": {
+                    "recipe_like_length": 0
+                }
+            }
+        ]
+        results = await self.collection.aggregate(pipeline).to_list(length=None)
         return results
 
     async def get_recipes_by_latest(self):
@@ -45,8 +60,17 @@ class RecipeDao:
         return results
 
     async def get_recipes_by_ingredients(self, value):
-        results = await self.collection.find({"recipe_ingredients.name": value}).sort("created_at", -1).to_list(length=None)
+        pipeline = [
+            {"$match": {
+                "$or": [
+                    {"recipe_ingredients.name": {"$regex": value, "$options": "i"}}
+                ]
+            }}
+        ]
+        results = await self.collection.aggregate(pipeline).to_list(length=None)
         return results
+        # results = await self.collection.find({"recipe_ingredients.name": value}).sort("created_at", -1).to_list(length=None)
+        # return results
 
     async def get_recipe_by_recipe_id(self, recipe_id):
         recipe = await self.collection.find_one({"recipe_id": recipe_id})
