@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from API.routes.api_routes import api_router
-from utils.email_manager import send_email
 
 app = FastAPI()
 

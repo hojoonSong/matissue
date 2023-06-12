@@ -14,7 +14,7 @@ user_service = UserService(user_dao)
 templates = Jinja2Templates(directory="templates")
 
 
-@router.get("/verify", status_code=200)
+@router.get("/verify", status_code=200, responses=common_responses)
 async def verify(
     code: str = Query(...),
     session_manager: SessionManager = Depends(SessionManager),
@@ -43,7 +43,7 @@ async def verify(
     }
 
 
-@router.post("/forgot-id", status_code=200)
+@router.post("/forgot-id", status_code=200, responses=common_responses)
 async def forgot_id(user: UserForgotIDIn, user_dao: UserDao = Depends(get_user_dao)):
     existing_user = await user_dao.get_user_by_email_and_birthdate(
         user.email, user.birth_date
@@ -82,7 +82,7 @@ async def send_verification_code(email: str):
     return {"message": "인증 이메일이 발송되었습니다. 이메일을 확인해 주세요."}
 
 
-@router.post("/forgot-password", status_code=200)
+@router.post("/forgot-password", status_code=200, responses=common_responses)
 async def forgot_password(
     user: UserForgotPasswordIn,
     user_dao: UserDao = Depends(get_user_dao),
