@@ -69,12 +69,11 @@ class RecipeDao:
         ]
         results = await self.collection.aggregate(pipeline).to_list(length=None)
         return results
-        # results = await self.collection.find({"recipe_ingredients.name": value}).sort("created_at", -1).to_list(length=None)
-        # return results
-
+    
     async def get_recipe_by_recipe_id(self, recipe_id):
         recipe = await self.collection.find_one({"recipe_id": recipe_id})
         user = await self.user_collection.find_one({"user_id": recipe["user_id"]})
+        recipe['user_img'] = user["img"]
         recipe['user_fan'] = len(user.get('fans', []))
         recipe['user_subscription'] = len(user.get('subscription', []))
         return recipe

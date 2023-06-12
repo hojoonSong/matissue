@@ -272,9 +272,7 @@ class RecipeService:
 
     async def delete_comment(self, comment_id, current_user):
         try:
-            print(comment_id)
             result = await self.recipe_dao.delete_comment(comment_id, current_user)
-            print(result)
             return result
         except Exception as e:
             logger.error(f"Failed to delete comment: {str(e)}")

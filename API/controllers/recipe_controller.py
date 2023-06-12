@@ -171,7 +171,6 @@ async def register_recipe(recipe: dict, current_user: str = Depends(get_current_
             raise HTTPException(
                 status_code=500, detail="Failed to insert recipe")
         serialized_recipes = json.loads(json.dumps(result, default=str))
-        print(serialized_recipes)
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(
@@ -191,7 +190,6 @@ async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_
 
 @router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)], tags=["recipes"])
 async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_user: str = Depends(get_current_session)):
-    print(current_user)
     try:
         existing_recipe = await recipe_service.get_recipe_to_update_recipe(recipe_id)
         if existing_recipe is None:
