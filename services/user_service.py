@@ -154,7 +154,7 @@ class UserService:
     async def modify_subscribe_user(
         self, current_user: str, follow_user_id: str, subscribe: bool
     ) -> None:
-        await self.user_dao.modify_subscription(follow_user_id, current_user, subscribe)
+        await self.user_dao.modify_subscription(current_user, follow_user_id, subscribe)
 
     async def get_fans(self, user_id: str):
         return await self.user_dao.get_fans(user_id)

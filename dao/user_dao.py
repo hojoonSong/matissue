@@ -92,7 +92,7 @@ class UserDao:
             raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
 
         if subscribe:
-            if follow_user_id in user.fans:
+            if follow_user_id in user.subscriptions:
                 raise HTTPException(status_code=409, detail="이미 구독 중입니다")
             else:
                 user.subscriptions.append(follow_user_id)
