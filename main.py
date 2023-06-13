@@ -10,6 +10,8 @@ origins = [
     "http://127.0.0.1:8000",
     "https://www.matissue.com/",
     "https://www.matissue.com",
+    "https://matissue.com/",
+    "https://matissue.com",
     "https://matissue.onrender.com",
     "https://matissue-1jim.onrender.com",
     "https://kdt-sw-4-team10.elicecoding.com",

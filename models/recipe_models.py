@@ -267,7 +267,7 @@ class CommentBase(BaseModel):
     comment_nickname: str
     comment_profile_img: str
     comment_text: str
-    comment_like: int = Field(default=0)
+    comment_like: Optional[List[str]] = []
     comment_id: str = Field(default_factory=lambda: generate())
     created_at: datetime = Field(default_factory=datetime.utcnow)
     comment_parent: str
