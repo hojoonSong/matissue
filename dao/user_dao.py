@@ -109,7 +109,8 @@ class UserDao:
         await self.update_user_in_db(follow_user)
 
     async def get_people(self, user_id: str, field: str):
-        docs = self.collection.find({field: user_id})
+        query = {field: user_id}
+        docs = self.collection.find(query)
         people = []
         async for doc in docs:
             person = UserInDB(**doc)
@@ -123,10 +124,10 @@ class UserDao:
         return people
 
     async def get_fans(self, user_id: str):
-        return await self.get_people(user_id, "fans")
+        return await self.get_people(str(user_id), "subscriptions")
 
     async def get_subscriptions(self, user_id: str):
-        return await self.get_people(user_id, "subscriptions")
+        return await self.get_people(str(user_id), "fans")
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
         user = await self.get_user_by_id(current_user)
