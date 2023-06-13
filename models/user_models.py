@@ -11,34 +11,43 @@ class UserBase(BaseModel):
     email: EmailStr
     birth_date: str
     img: str
-    subscriptions: Optional[List[str]] = []
-    fans: Optional[List[str]] = []
+    subscriptions: Optional[List[str]] = []  # 내가 구독하고 있는 사람들
+    fans: Optional[List[str]] = []  # 나를 구독하고 있는 사람들
 
 
 class UserIn(UserBase):
     password: str
 
-    @validator('birth_date', pre=True)
+    @validator("birth_date", pre=True)
     def parse_birth_date(cls, value: str):
         try:
             datetime.strptime(value, "%Y-%m-%d")
             return value
         except ValueError:
             raise HTTPException(
-                status_code=400, detail='birth_date는 "YYYY-MM-DD" 형식이어야 합니다.')
+                status_code=400, detail='birth_date는 "YYYY-MM-DD" 형식이어야 합니다.'
+            )
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, password):
-        if len(password) < 8 or not re.search(r"\d", password) or not re.search(r"[a-z]", password) or not re.search(r"[A-Z]", password) or not re.search(r"[^\w\s]", password):
+        if (
+            len(password) < 8
+            or not re.search(r"\d", password)
+            or not re.search(r"[a-z]", password)
+            or not re.search(r"[A-Z]", password)
+            or not re.search(r"[^\w\s]", password)
+        ):
             raise HTTPException(
-                status_code=400, detail='비밀번호는 8글자 이상, 대소문자, 특수문자, 숫자를 혼용하여야 합니다.')
+                status_code=400, detail="비밀번호는 8글자 이상, 대소문자, 특수문자, 숫자를 혼용하여야 합니다."
+            )
         return password
 
-    @validator('user_id')
+    @validator("user_id")
     def validate_user_id(cls, user_id):
-        if not re.match(r'^[a-zA-Z0-9_-]+$', user_id):
+        if not re.match(r"^[a-zA-Z0-9_-]+$", user_id):
             raise HTTPException(
-                status_code=400, detail='사용자 아이디는 영문자, 숫자, 밑줄(_), 대시(-)만 포함할 수 있습니다.')
+                status_code=400, detail="사용자 아이디는 영문자, 숫자, 밑줄(_), 대시(-)만 포함할 수 있습니다."
+            )
         return user_id
 
 
@@ -59,22 +68,29 @@ class UserUpdate(UserBase):
     img: Optional[str]
     password: Optional[str]
 
-    @validator('birth_date', pre=True)
+    @validator("birth_date", pre=True)
     def parse_birth_date(cls, value: str):
         try:
             datetime.strptime(value, "%Y-%m-%d")
             return value
         except ValueError:
             raise HTTPException(
-                status_code=400, detail='birth_date는 "YYYY-MM-DD" 형식이어야 합니다.')
+                status_code=400, detail='birth_date는 "YYYY-MM-DD" 형식이어야 합니다.'
+            )
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, password: str):
         if password is None:
             return password
-        if len(password) < 8 or not re.search("\d", password) or not re.search("[A-Z]", password) or not re.search("[a-z]", password):
+        if (
+            len(password) < 8
+            or not re.search("\d", password)
+            or not re.search("[A-Z]", password)
+            or not re.search("[a-z]", password)
+        ):
             raise HTTPException(
-                status_code=400, detail='비밀번호는 8글자 이상, 숫자와 대소문자를 혼용하여야 합니다.')
+                status_code=400, detail="비밀번호는 8글자 이상, 숫자와 대소문자를 혼용하여야 합니다."
+            )
         return password
 
 
