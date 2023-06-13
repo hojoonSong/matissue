@@ -5,7 +5,7 @@ class Hasher:
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     @classmethod
-    def get_hashed_password(cls, password: str):
+    async def get_hashed_password(cls, password: str):
         return cls.pwd_context.hash(password)
 
     @classmethod

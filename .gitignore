@@ -1,6 +1,7 @@
 .env
 .gitignore
 .vscode
+debug.log
 
 # Ignore pycache folders
 __pycache__/
