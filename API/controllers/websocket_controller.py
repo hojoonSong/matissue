@@ -2,6 +2,7 @@ from fastapi import WebSocket, Depends, APIRouter
 import redis
 import asyncio
 import json
+import logging
 from utils.config import get_settings
 from utils.session_manager import get_current_session
 
@@ -15,6 +16,9 @@ router = APIRouter()
 # WebSocket 연결 관리
 active_connections = {}
 
+# 로깅 설정
+logging.basicConfig(level=logging.INFO)
+
 
 @router.websocket("/ws")
 async def websocket_endpoint(
@@ -25,6 +29,9 @@ async def websocket_endpoint(
 
     # Redis로부터 알림 받기
     async def listen_for_notifications():
+        logging.info("Listening for notifications...")
+        pubsub = redis_client.pubsub()  # Redis pubsub 객체 생성
+        pubsub.subscribe("notifications")
         for message in pubsub.listen():
             if message["type"] == "message":
                 notification = json.loads(message["data"])
@@ -32,6 +39,11 @@ async def websocket_endpoint(
                 if target_user_id in active_connections:
                     target_websocket = active_connections[target_user_id]
                     await target_websocket.send_text(notification["message"])
+
+                    # 서버 로그에 메시지 전송 로그 출력
+                    logging.info(
+                        f"Sent notification to user {target_user_id}: {notification['message']}"
+                    )
 
     # 별도의 스레드에서 Redis 알림 수신 시작
     asyncio.create_task(listen_for_notifications())

@@ -9,7 +9,10 @@
 │       ├── api_routes.py
 │       ├── recipe_routes.py
 │       ├── user_routes.py
-│       └── verify_routes.py
+│       ├── verify_routes.py
+│       └── websocket_routes.py
+├── README.md
+├── constants.py
 ├── dao
 │   ├── recipe_dao.py
 │   └── user_dao.py
@@ -23,14 +26,20 @@
 ├── services
 │   ├── recipe_service.py
 │   └── user_service.py
+├── templates
+│   ├── email_verification_code.html
+│   ├── forgot_id_email.html
+│   ├── forgot_password.html
+│   └── verification_email.html
 └── utils
     ├── config.py
     ├── db_manager.py
     ├── email_manager.py
     ├── hash_manager.py
+    ├── notification_manager.py
     ├── permission_manager.py
     ├── response_manager.py
     ├── session_manager.py
     └── websocket_manager.py
 
-7 directories, 26 files
+8 directories, 34 files
