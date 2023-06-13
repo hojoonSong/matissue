@@ -57,14 +57,12 @@ class SessionManager:
         return email
 
     async def save_user_info(self, user: UserIn):
-        print(user)
         hashed_password = await Hasher.get_hashed_password(user.password)
         user_in_redis = UserInDB(
             **user.dict(exclude={"password"}),
             hashed_password=hashed_password,
             created_at=datetime.now(),
         )
-        print(user_in_redis)
         user_json = user_in_redis.json()
         self.redis_client.set(user_in_redis.email, user_json, ex=86400)
 
