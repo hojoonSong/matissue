@@ -186,7 +186,8 @@ async def toggle_subscription(
             current_user, follow_user_id, subscribe
         )
         if subscribe:
-            message = f"{current_user}님이 회원님을 구독하기 시작했습니다."
+            follower_name = await user_dao.get_username_by_id(current_user)
+            message = f"{follower_name}님이 회원님을 구독하였습니다!"
             notification_manager.send_notification(follow_user_id, message)
             return {"message": "구독 완료"}
         else:

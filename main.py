@@ -30,6 +30,7 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/api")
 
+
 # # 서버 실행 전에 이메일 전송 함수 실행
 # receiver_email = "bmp.tom@yahoo.com"
 # subject = "Test Email"

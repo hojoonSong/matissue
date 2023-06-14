@@ -18,6 +18,6 @@ class NotificationManager:
         notification = {"user_id": user_id, "message": message}
 
         # 메시지 발행 전 로그 출력
-        logging.info(f"Publishing notification to user {user_id}: {message}")
+        logging.info(f"사용자 {user_id}에게 : {message}라고 전송하였습니다.")
 
         redis_client.publish("notifications", json.dumps(notification))
