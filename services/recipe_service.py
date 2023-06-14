@@ -30,9 +30,9 @@ class RecipeService:
                 detail="Failed to get all recipes"
             )
 
-    async def get_recipes_by_categories(self, category):
+    async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
         try:
-            result = await self.recipe_dao.get_recipes_by_categories(category)
+            result = await self.recipe_dao.get_recipes_by_categories(category, skip=skip, limit=limit)
             return result
         except Exception as e:
             logger.error(f"Failed to get recipes by categories: {str(e)}")
