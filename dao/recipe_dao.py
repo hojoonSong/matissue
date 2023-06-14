@@ -51,7 +51,13 @@ class RecipeDao:
     async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):
         results = await self.collection.find().sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
         return results
-
+    
+    async def get_recipes_by_user_id(self, user_id, skip: int = 0, limit: int = 160):
+        result = await self.collection.find(
+            {"user_id": user_id}
+        ).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
+        return result
+    
     async def get_recipes_by_single_serving(self):
         results = await self.collection.find({"recipe_info.serving": 1}).sort("created_at", -1).to_list(length=None)
         return results
@@ -85,11 +91,7 @@ class RecipeDao:
             return None
         return RecipeCreate(**result)
 
-    async def get_recipes_by_user_id(self, user_id):
-        result = await self.collection.find(
-            {"user_id": user_id}
-        ).sort("created_at", -1).to_list(length=None)
-        return result
+
 
     async def get_comments(self, recipe_id):
         result = await self.comment_collection.find({"comment_parent": recipe_id}).to_list(length=None)

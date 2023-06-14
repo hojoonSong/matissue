@@ -62,7 +62,18 @@ class RecipeService:
                 status_code=500,
                 detail="Failed to get recipes by latest"
             )
-
+        
+    async def get_recipes_by_user_id(self, user_id, skip: int = 0, limit: int = 160):
+        try:
+            result = await self.recipe_dao.get_recipes_by_user_id(user_id, skip=skip, limit=limit)
+            return result
+        except Exception as e:
+            logger.error(f"Failed to get recipes by user id: {str(e)}")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to get recipes by user id"
+            )
+        
     async def get_recipes_by_single_serving(self):
         try:
             results = await self.recipe_dao.get_recipes_by_single_serving()
@@ -107,16 +118,7 @@ class RecipeService:
                 detail="Failed to get recipe by recipe id"
             )
 
-    async def get_recipes_by_user_id(self, user_id):
-        try:
-            result = await self.recipe_dao.get_recipes_by_user_id(user_id)
-            return result
-        except Exception as e:
-            logger.error(f"Failed to get recipes by user id: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get recipes by user id"
-            )
+
 
     async def get_recipe_to_update_recipe(self, recipe_id):
         try:

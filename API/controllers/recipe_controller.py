@@ -81,8 +81,12 @@ async def search_recipes_by_title(value: str, page: int = 1, limit: int = 160):
 
 
 @router.get("/user", dependencies=[Depends(get_current_session)], response_model=RecipeGetList, tags=["recipes_get"])
-async def get_recipes_by_user_id(current_user: str = Depends(get_current_session)):
-    recipes = await recipe_service.get_recipes_by_user_id(current_user)
+async def get_recipes_by_user_id(
+    current_user: str = Depends(get_current_session), 
+    page: int = 1,
+    limit: int = 150):
+    skip_count = (page - 1) * limit
+    recipes = await recipe_service.get_recipes_by_user_id(current_user,skip=skip_count, limit=limit)
     if len(recipes) == 0:
         return JSONResponse(content=[])
     if recipes:
