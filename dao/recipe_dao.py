@@ -26,10 +26,9 @@ class RecipeDao:
 
     async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
         result = await self.collection.find({"recipe_category": category}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
-        print(result)
         return result
 
-    async def get_recipes_by_popularity(self):
+    async def get_recipes_by_popularity(self, skip: int = 0, limit: int = 160):
         pipeline = [
             {
                 "$addFields": {
@@ -45,7 +44,7 @@ class RecipeDao:
                 }
             }
         ]
-        results = await self.collection.aggregate(pipeline).to_list(length=None)
+        results = await self.collection.aggregate(pipeline).skip(skip).limit(limit).to_list(length=None)
         return results
 
     async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):
@@ -90,8 +89,6 @@ class RecipeDao:
         if result is None:
             return None
         return RecipeCreate(**result)
-
-
 
     async def get_comments(self, recipe_id):
         result = await self.comment_collection.find({"comment_parent": recipe_id}).to_list(length=None)

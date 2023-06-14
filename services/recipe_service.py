@@ -41,9 +41,9 @@ class RecipeService:
                 detail="Failed to get recipes by categories"
             )
 
-    async def get_recipes_by_popularity(self):
+    async def get_recipes_by_popularity(self, skip: int = 0, limit: int = 160):
         try:
-            results = await self.recipe_dao.get_recipes_by_popularity()
+            results = await self.recipe_dao.get_recipes_by_popularity(skip=skip, limit=limit)
             return results
         except Exception as e:
             logger.error(f"Failed to get recipes by popularity: {str(e)}")
