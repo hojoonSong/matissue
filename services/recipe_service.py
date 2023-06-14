@@ -85,9 +85,9 @@ class RecipeService:
                 detail="Failed to get recipes by single serving"
             )
 
-    async def get_recipes_by_vegetarian(self):
+    async def get_recipes_by_vegetarian(self, skip: int = 0, limit: int = 160):
         try:
-            results = await self.recipe_dao.get_recipes_by_vegetarian()
+            results = await self.recipe_dao.get_recipes_by_vegetarian(skip=skip, limit=limit)
             return results
         except Exception as e:
             logger.error(f"Failed to get recipes by vegetarian: {str(e)}")

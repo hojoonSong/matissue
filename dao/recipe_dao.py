@@ -61,8 +61,8 @@ class RecipeDao:
         results = await self.collection.find({"recipe_info.serving": 1}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
         return results
 
-    async def get_recipes_by_vegetarian(self):
-        results = await self.collection.find({"recipe_category": "vegetarian"}).sort("created_at", -1).to_list(length=None)
+    async def get_recipes_by_vegetarian(self, skip: int = 0, limit: int = 160):
+        results = await self.collection.find({"recipe_category": "vegetarian"}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
         return results
 
     async def get_recipes_by_ingredients(self, value):
