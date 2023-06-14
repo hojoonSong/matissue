@@ -47,8 +47,8 @@ class RecipeDao:
         results = await self.collection.aggregate(pipeline).to_list(length=None)
         return results
 
-    async def get_recipes_by_latest(self):
-        results = await self.collection.find().sort("created_at", -1).to_list(length=None)
+    async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):
+        results = await self.collection.find().sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
         return results
 
     async def get_recipes_by_single_serving(self):
