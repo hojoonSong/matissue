@@ -1,3 +1,4 @@
+import threading
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -15,23 +16,28 @@ SENDER_EMAIL = settings.sender_email
 
 
 def send_html_email(receiver_email, subject, template_name, template_context):
-    msg = MIMEMultipart()
-    msg["From"] = SENDER_EMAIL
-    msg["To"] = receiver_email
-    msg["Subject"] = subject
+    def send_email_background():
+        msg = MIMEMultipart()
+        msg["From"] = SENDER_EMAIL
+        msg["To"] = receiver_email
+        msg["Subject"] = subject
 
-    html_content = templates.get_template(template_name).render(template_context)
-    body = MIMEText(html_content, "html")
-    msg.attach(body)
+        html_content = templates.get_template(template_name).render(template_context)
+        body = MIMEText(html_content, "html")
+        msg.attach(body)
 
-    try:
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
-            server.login(SENDER_EMAIL, SMTP_PASSWORD)
-            server.send_message(msg)
-            return {"status": "Email sent successfully"}
-    except smtplib.SMTPException as e:
-        error_message = str(e)
-        return {"error": f"Failed to send email: {error_message}"}
+        try:
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+                server.login(SENDER_EMAIL, SMTP_PASSWORD)
+                server.send_message(msg)
+                print("Email sent successfully")
+        except smtplib.SMTPException as e:
+            error_message = str(e)
+            print(f"Failed to send email: {error_message}")
+
+    email_thread = threading.Thread(target=send_email_background)
+    email_thread.start()
+    return {"status": "Email is being sent in the background"}
 
 
 def send_verification_email(email: str, verification_link: str) -> None:
