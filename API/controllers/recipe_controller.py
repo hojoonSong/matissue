@@ -128,9 +128,12 @@ async def get_recipes_by_latest(
 
 
 @router.get("/single", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_recipes_by_single_serving():
+async def get_recipes_by_single_serving(    
+    page: int = 1,
+    limit: int = 160):
     try:
-        recipes = await recipe_service.get_recipes_by_single_serving()
+        skip_count = (page - 1) * limit
+        recipes = await recipe_service.get_recipes_by_single_serving(skip=skip_count, limit=limit)
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])

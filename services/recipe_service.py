@@ -74,9 +74,9 @@ class RecipeService:
                 detail="Failed to get recipes by user id"
             )
         
-    async def get_recipes_by_single_serving(self):
+    async def get_recipes_by_single_serving(self, skip: int = 0, limit: int = 160):
         try:
-            results = await self.recipe_dao.get_recipes_by_single_serving()
+            results = await self.recipe_dao.get_recipes_by_single_serving(skip=skip, limit=limit)
             return results
         except Exception as e:
             logger.error(f"Failed to get recipes by single serving: {str(e)}")
