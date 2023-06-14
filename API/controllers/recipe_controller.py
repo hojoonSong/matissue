@@ -99,7 +99,7 @@ async def get_recipes_by_user_id(
 @router.get("/popularity", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_popularity(    
     page: int = 1,
-    limit: int = 150):
+    limit: int = 160):
     try:
         skip_count = (page - 1) * limit
         recipes = await recipe_service.get_recipes_by_popularity(skip=skip_count, limit=limit)

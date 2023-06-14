@@ -44,7 +44,9 @@ class RecipeDao:
                 }
             }
         ]
-        results = await self.collection.aggregate(pipeline).skip(skip).limit(limit).to_list(length=None)
+        cursor = self.collection.aggregate(pipeline)
+        results = await cursor.to_list(length=None)
+        results = results[skip:skip+limit]  # 페이지네이션을 위해 결과를 잘라냄
         return results
 
     async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):
