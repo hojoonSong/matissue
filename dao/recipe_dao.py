@@ -19,8 +19,8 @@ class RecipeDao:
 
     # get
 
-    async def get_all_recipes(self):
-        cursor = self.collection.find({}).sort("created_at", -1)
+    async def get_all_recipes(self, skip: int = 0, limit: int = 160):
+        cursor = self.collection.find({}).sort("created_at", -1).skip(skip).limit(limit)
         result = await cursor.to_list(length=None)
         return result
 

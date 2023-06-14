@@ -19,9 +19,9 @@ class RecipeService:
     def __init__(self, recipe_dao: RecipeDao):
         self.recipe_dao = recipe_dao
 
-    async def get_all_recipes(self):
+    async def get_all_recipes(self,skip: int = 0, limit: int = 160):
         try:
-            result = await self.recipe_dao.get_all_recipes()
+            result = await self.recipe_dao.get_all_recipes(skip=skip, limit=limit)
             return result
         except Exception as e:
             logger.error(f"Failed to get all recipes: {str(e)}")
@@ -52,16 +52,6 @@ class RecipeService:
                 detail="Failed to get recipes by popularity"
             )
 
-    # async def get_recipes_by_latest(self):
-    #     try:
-    #         results = await self.recipe_dao.get_recipes_by_latest()
-    #         return results
-    #     except Exception as e:
-    #         logger.error(f"Failed to get recipes by latest: {str(e)}")
-    #         raise HTTPException(
-    #             status_code=500,
-    #             detail="Failed to get recipes by latest"
-    #         )
     async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):
         try:
             results = await self.recipe_dao.get_recipes_by_latest(skip=skip, limit=limit)

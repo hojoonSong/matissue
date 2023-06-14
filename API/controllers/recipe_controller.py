@@ -21,9 +21,13 @@ collection = db_manager.get_collection("recipes")
 
 
 @router.get("/", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_all_recipes():
+async def get_all_recipes(    
+    page: int = 1,
+    limit: int = 160
+):
     try:
-        recipes = await recipe_service.get_all_recipes()
+        skip_count = (page - 1) * limit
+        recipes = await recipe_service.get_all_recipes(skip=skip_count, limit=limit)
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
@@ -114,18 +118,6 @@ async def get_recipes_by_latest(
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-# @router.get("/latest", response_model=RecipeGetList, tags=["recipes_get"])
-# async def get_recipes_by_latest():
-#     try:
-#         recipes = await recipe_service.get_recipes_by_latest()
-#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
-#         if len(recipes) == 0:
-#             return JSONResponse(content=[])
-#         return JSONResponse(content=serialized_recipes)
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=404, detail=str(e))
 
 
 @router.get("/single", response_model=RecipeGetList, tags=["recipes_get"])
