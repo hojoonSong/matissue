@@ -115,8 +115,10 @@ class UserDao:
         else:
             raise HTTPException(status_code=500, detail="서버 내부 오류입니다.")
 
-        await self.update_user_in_db(user)
-        await self.update_user_in_db(follow_user)
+        await self.update_user_in_db(
+            current_user, {"subscriptions": user.subscriptions}
+        )
+        await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
 
     async def get_people(self, user_id: str, field: str):
         query = {field: user_id}

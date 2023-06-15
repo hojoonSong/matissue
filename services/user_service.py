@@ -1,7 +1,6 @@
 from models.user_models import UserIn, UserInDB, UserUpdate
 from utils.hash_manager import Hasher
 from utils.session_manager import SessionManager
-from datetime import datetime
 from dao.user_dao import UserDao, get_user_dao
 from fastapi import HTTPException, Response, Depends
 from utils.config import get_settings
@@ -63,9 +62,7 @@ class UserService:
             ):
                 raise Exception("잘못된 인증 코드입니다.")
 
-        existing_email_user = await self.user_dao.get_user_by_email(
-            user.email
-        )  # 이 줄을 if 블록 안으로 옮깁니다.
+        existing_email_user = await self.user_dao.get_user_by_email(user.email)
         if existing_email_user:
             raise Exception(f"사용자 이메일 '{user.email}'은(는) 사용할 수 없습니다.")
 
