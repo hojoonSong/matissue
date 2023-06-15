@@ -225,3 +225,20 @@ async def get_fans(user_id: str):
 )
 async def get_subscriptions(user_id: str):
     return {"people": await user_service.get_subscriptions(user_id)}
+
+
+@router.get(
+    "/writer",
+    response_model=UserOut,
+    responses=common_responses,
+)
+async def get_writer(user_id: str):
+    user_in_db = await user_dao.get_user_by_id(user_id)
+    if not user_in_db:
+        raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
+
+    return {
+        "user_id": user_in_db.user_id,
+        "username": user_in_db.username,
+        "img": user_in_db.img,
+    }
