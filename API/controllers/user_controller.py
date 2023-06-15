@@ -229,6 +229,7 @@ async def get_subscriptions(user_id: str):
 
 @router.get(
     "/{user_id}",
+    responses=common_responses,
 )
 async def get_writer(user_id: str):
     user_in_db = await user_dao.get_user_by_id(user_id)
@@ -239,4 +240,6 @@ async def get_writer(user_id: str):
         "user_id": user_in_db.user_id,
         "username": user_in_db.username,
         "img": user_in_db.img,
+        "fans": user_in_db.fans,
+        "subscriptions": user_in_db.subscriptions,
     }
