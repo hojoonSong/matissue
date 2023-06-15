@@ -95,11 +95,18 @@ def get_current_session(request: Request) -> str:
     session_id = request.cookies.get("session-id")
     session_manager = SessionManager()
     current_user = session_manager.get_session(session_id)
+
+    # 관리자인 경우, 예외처리를 합니다.
+    if current_user and getattr(current_user, "id", None) == "admin":
+        return current_user
+
+    # 일반적인 처리로 변경.
     if current_user is None:
         raise HTTPException(
             status_code=401,
             detail="Invalid session ID",
         )
+
     return current_user
 
 
