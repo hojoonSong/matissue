@@ -15,9 +15,9 @@ class UserDao:
         result = await self.collection.insert_one(user_in_db.dict())
         return str(result.inserted_id)
 
-    async def update_user_in_db(self, user_in_db: UserInDB):
-        result = await self.collection.replace_one(
-            {"user_id": user_in_db.user_id}, user_in_db.dict()
+    async def update_user_in_db(self, user_id: str, update_data: dict):
+        result = await self.collection.update_one(
+            {"user_id": user_id}, {"$set": update_data}
         )
         return result.modified_count == 1
 

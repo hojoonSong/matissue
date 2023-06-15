@@ -50,6 +50,9 @@ class UserService:
         check_user_permissions(user.user_id, current_user)
         current_user_in_db = await self.user_dao.get_user_by_id(user.user_id)
 
+        if not current_user_in_db:
+            raise Exception(f"사용자 아이디 '{user.user_id}'을(를) 찾을 수 없습니다.")
+
         if (
             current_user != "admin"
             and user.email is not None
@@ -60,29 +63,17 @@ class UserService:
             ):
                 raise Exception("잘못된 인증 코드입니다.")
 
-        existing_user = await self.user_dao.get_user_by_id(user.user_id)
-        if not existing_user:
-            raise Exception(f"사용자 아이디 '{user.user_id}'은 찾을 수 없습니다.")
+        if user.email and user.email != current_user_in_db.email:
+            existing_email_user = await self.user_dao.get_user_by_email(user.email)
+        if existing_email_user:
+            raise Exception(f"사용자 이메일 '{user.email}'은(는) 사용할 수 없습니다.")
 
-        existing_email_user = await self.user_dao.get_user_by_email(user.email)
-        if existing_email_user and existing_email_user.user_id != user.user_id:
-            raise Exception(f"사용자 이메일 '{user.email}'은 사용할 수 없습니다.")
-
+        update_data = user.dict(exclude_unset=True, exclude={"password"})
         if user.password:
             hashed_password = await Hasher.get_hashed_password(user.password)
-            user_in_db = UserInDB(
-                **user.dict(exclude={"password"}),
-                hashed_password=hashed_password,
-                created_at=datetime.now(),
-            )
-        else:
-            user_in_db = UserInDB(
-                **user.dict(exclude={"password"}),
-                hashed_password=existing_user.hashed_password,
-                created_at=datetime.now(),
-            )
+            update_data["hashed_password"] = hashed_password
 
-        await self.user_dao.update_user_in_db(user_in_db)
+        await self.user_dao.update_user_in_db(user.user_id, update_data)
         updated_user = await self.user_dao.get_user_by_id(user.user_id)
         return updated_user
 
