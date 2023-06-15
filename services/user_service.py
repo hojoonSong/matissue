@@ -118,11 +118,8 @@ class UserService:
             raise HTTPException(status_code=404, detail=f"'{user_id}'를 찾을 수 없습니다.")
 
         hashed_temporary_password = await Hasher.get_hashed_password(temporary_password)
-        user.hashed_password = hashed_temporary_password
-        user_in_db = UserInDB(
-            **user.dict(),
-        )
-        if await self.user_dao.update_user_in_db(user_in_db):
+        update_data = {"hashed_password": hashed_temporary_password}
+        if await self.user_dao.update_user_in_db(user_id, update_data):
             return temporary_password
         else:
             return None
