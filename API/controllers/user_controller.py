@@ -179,24 +179,19 @@ async def toggle_subscription(
     current_user: str = Depends(get_current_session),
     notification_manager: NotificationManager = Depends(NotificationManager),
 ):
-    if current_user == follow_user_id:
-        raise HTTPException(status_code=400, detail="본인을 구독 할 수 없습니다.")
     try:
-        await user_service.modify_subscribe_user(
-            current_user, follow_user_id, subscribe
-        )
+        await user_dao.modify_subscription(current_user, follow_user_id, subscribe)
         if subscribe:
             follower_name = await user_dao.get_username_by_id(current_user)
             message = f"{follower_name}님이 회원님을 구독하였습니다!"
+            # 알림 보내기
             notification_manager.send_notification(follow_user_id, message)
             return {"message": "구독 완료"}
         else:
             return {"message": "구독 취소 완료"}
     except HTTPException as e:
-        if e.status_code == 409:
-            raise HTTPException(status_code=400, detail="이미 구독 중입니다.")
-        else:
-            raise
+        # 에러 메시지
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
 @router.get(
