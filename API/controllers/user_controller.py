@@ -231,7 +231,7 @@ async def get_subscriptions(user_id: str):
     "/{user_id}",
     responses=common_responses,
 )
-async def get_writer(user_id: str):
+async def get_chef(user_id: str):
     user_in_db = await user_dao.get_user_by_id(user_id)
     if not user_in_db:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
