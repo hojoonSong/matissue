@@ -11,8 +11,8 @@ class UserBase(BaseModel):
     email: EmailStr
     birth_date: str
     img: str
-    subscriptions: List[str] = []
-    fans: List[str] = []  # 나를 구독하고 있는 사람들
+    subscriptions: Optional[List[str]] = []  # 내가 구독하고 있는 사람들
+    fans: Optional[List[str]] = []  # 나를 구독하고 있는 사람들
 
 
 class UserIn(UserBase):
