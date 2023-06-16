@@ -120,15 +120,14 @@ class UserDao:
         )
         await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
 
-    async def get_people(self, user_id: str, field: str):
-        # field에 user_id가 포함되어 있는 문서를 찾도록 쿼리를 수정합니다.
-        query = {field: user_id}
-        # 쿼리 수정: array field 안에 user_id가 있는지 확인
-        query = {field: {"$in": [user_id]}}
-
-        docs = self.collection.find(query)
+    async def get_user_details(self, user_ids):
+        # 사용자들의 상세 정보를 담을 리스트
         people = []
-        async for doc in docs:
+
+        # 각 user_id에 대해 사용자 상세 정보를 가져옴
+        for user_id in user_ids:
+            doc = await self.collection.find_one({"user_id": user_id})
+        if doc:
             person = UserInDB(**doc)
             people.append(
                 {
@@ -137,13 +136,30 @@ class UserDao:
                     "img": person.img,
                 }
             )
+
         return people
 
     async def get_fans(self, user_id: str):
-        return await self.get_people(str(user_id), "subscriptions")
+        # 해당 user_id를 가진 문서를 찾습니다.
+        doc = await self.collection.find_one({"user_id": user_id})
+
+        # fans 필드가 있는지 확인하고, 있다면 fans의 user_id들로 상세 정보를 가져옵니다.
+        if doc and "fans" in doc:
+            return await self.get_user_details(doc["fans"])
+
+        # fans 필드가 없다면 빈 리스트를 반환합니다.
+        return []
 
     async def get_subscriptions(self, user_id: str):
-        return await self.get_people(str(user_id), "fans")
+        # 해당 user_id를 가진 문서를 찾습니다.
+        doc = await self.collection.find_one({"user_id": user_id})
+
+        # subscriptions 필드가 있는지 확인하고, 있다면 subscriptions의 user_id들로 상세 정보를 가져옵니다.
+        if doc and "subscriptions" in doc:
+            return await self.get_user_details(doc["subscriptions"])
+
+        # subscriptions 필드가 없다면 빈 리스트를 반환합니다.
+        return []
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
         user = await self.get_user_by_id(current_user)
