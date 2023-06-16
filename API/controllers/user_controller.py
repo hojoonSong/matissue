@@ -121,7 +121,6 @@ async def logout(request: Request, response: Response):
 
 @router.get(
     "/me",
-    response_model=UserOut,
     dependencies=[Depends(get_current_session)],
     responses=common_responses,
 )
