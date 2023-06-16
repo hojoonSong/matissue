@@ -132,7 +132,7 @@
 
 ```
 　
-## 포지션
+## 🐰 포지션
 - :lemon: 백엔드 팀장 송호준 : USERS, email verification, Websocket 구현 담당
 -  :green_apple:  맛이슈 팀장 신유빈 : RECIPIES, COMMENT, 배포 담당
 
