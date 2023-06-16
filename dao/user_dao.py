@@ -140,10 +140,10 @@ class UserDao:
         return people
 
     async def get_fans(self, user_id: str):
-        return await self.get_people(str(user_id), "fans")
+        return await self.get_people(str(user_id), "subscriptions")
 
     async def get_subscriptions(self, user_id: str):
-        return await self.get_people(str(user_id), "subscriptions")
+        return await self.get_people(str(user_id), "fans")
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
         user = await self.get_user_by_id(current_user)
