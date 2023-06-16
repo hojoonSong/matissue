@@ -2,6 +2,7 @@ from utils.config import get_settings
 from utils.db_manager import MongoDBManager
 from models.user_models import UserInDB
 from fastapi import HTTPException
+from typing import List
 
 settings = get_settings()
 
@@ -120,14 +121,10 @@ class UserDao:
         )
         await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
 
-    async def get_user_details(self, user_ids):
-        # 사용자들의 상세 정보를 담을 리스트
+    async def get_user_details(self, user_ids: List[str]):
+        cursor = self.collection.find({"user_id": {"$in": user_ids}})
         people = []
-
-        # 각 user_id에 대해 사용자 상세 정보를 가져옴
-        for user_id in user_ids:
-            doc = await self.collection.find_one({"user_id": user_id})
-        if doc:
+        async for doc in cursor:
             person = UserInDB(**doc)
             people.append(
                 {
@@ -136,29 +133,18 @@ class UserDao:
                     "img": person.img,
                 }
             )
-
         return people
 
     async def get_fans(self, user_id: str):
-        # 해당 user_id를 가진 문서를 찾습니다.
         doc = await self.collection.find_one({"user_id": user_id})
-
-        # fans 필드가 있는지 확인하고, 있다면 fans의 user_id들로 상세 정보를 가져옵니다.
         if doc and "fans" in doc:
             return await self.get_user_details(doc["fans"])
-
-        # fans 필드가 없다면 빈 리스트를 반환합니다.
         return []
 
     async def get_subscriptions(self, user_id: str):
-        # 해당 user_id를 가진 문서를 찾습니다.
         doc = await self.collection.find_one({"user_id": user_id})
-
-        # subscriptions 필드가 있는지 확인하고, 있다면 subscriptions의 user_id들로 상세 정보를 가져옵니다.
         if doc and "subscriptions" in doc:
             return await self.get_user_details(doc["subscriptions"])
-
-        # subscriptions 필드가 없다면 빈 리스트를 반환합니다.
         return []
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
