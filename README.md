@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-🚀 <b>맛이슈 서버는 표준 Python 타입 힌트를 기반으로 한 모던하고 고성능 웹 프레임워크인 FastAPI를 사용하여 API를 구축한 웹 프로젝트입니다.</b> 🚀
+🚀 <b>맛이슈 API 서버는 표준 Python 타입 힌트를 기반으로 한 모던하고 고성능 웹 프레임워크인 FastAPI를 사용하여 API를 구축한 웹 프로젝트입니다.</b> 🚀
 </p>
 
 <p align="center">
