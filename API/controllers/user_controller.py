@@ -137,6 +137,8 @@ async def get_user(current_user: str = Depends(get_current_session)):
         "birth_date": user_in_db.birth_date,
         "img": user_in_db.img,
         "created_at": user_in_db.created_at,
+        "subscriptions": user_in_db.subscriptions,
+        "fans": user_in_db.fans,
     }
 
 
