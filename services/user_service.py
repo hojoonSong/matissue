@@ -63,7 +63,7 @@ class UserService:
                 raise Exception("잘못된 인증 코드입니다.")
 
         existing_email_user = await self.user_dao.get_user_by_email(user.email)
-        if existing_email_user:
+        if existing_email_user and existing_email_user.user_id != user.user_id:
             raise Exception(f"사용자 이메일 '{user.email}'은(는) 사용할 수 없습니다.")
 
         update_data = user.dict(exclude_unset=True, exclude={"password"})

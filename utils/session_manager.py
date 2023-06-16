@@ -86,7 +86,7 @@ class SessionManager:
 
 
 def get_verification_link(email: str, verification_code: str) -> str:
-    base_url = "https://kdt-sw-4-team10.elicecoding.com/auth/verify"
+    base_url = "https://www.matissue.com/auth/verify"
     verification_link = f"{base_url}?code={verification_code}"
     return verification_link
 
