@@ -121,7 +121,11 @@ class UserDao:
         await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
 
     async def get_people(self, user_id: str, field: str):
+        # field에 user_id가 포함되어 있는 문서를 찾도록 쿼리를 수정합니다.
         query = {field: user_id}
+        # 쿼리 수정: array field 안에 user_id가 있는지 확인
+        query = {field: {"$in": [user_id]}}
+
         docs = self.collection.find(query)
         people = []
         async for doc in docs:
@@ -136,10 +140,10 @@ class UserDao:
         return people
 
     async def get_fans(self, user_id: str):
-        return await self.get_people(str(user_id), "subscriptions")
+        return await self.get_people(str(user_id), "fans")
 
     async def get_subscriptions(self, user_id: str):
-        return await self.get_people(str(user_id), "fans")
+        return await self.get_people(str(user_id), "subscriptions")
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
         user = await self.get_user_by_id(current_user)
