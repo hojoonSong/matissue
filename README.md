@@ -18,7 +18,7 @@
 확장성 있는 웹 커뮤니티를 제작하고자 할 때, 해당 코드를 활용하여 다양한 기능을 확장하여 구현할 수 있습니다. 해당 프로젝트는 풍부한 사용자 경험을 제공하며, 웹소켓 및 이메일 인증과 같은 다양한 기능을 제공합니다. 이 프로젝트는 웹 개발을 시작하는 데 유용한 스켈레톤 코드로 활용할 수 있습니다. 또한, FAST API의 빠르고 간편한 경험은 프로젝트 개발에 큰 도움이 될 것입니다.
 
 ## 사전 요구사항
-- 최신 버전의 Python (3.6 이상)과 pip가 설치되어 있어야 합니다. 이 프로젝트에서는 인메모리 Redis도 사용합니다.
+- 최신 버전의 Python (3.6 이상)과 pip가 설치되어 있어야 합니다. 이 프로젝트에서는 Redis, MongoDB를 부가적으로 사용합니다. 
 - [FastAPI](https://fastapi.tiangolo.com/)와 [Motor](https://motor.readthedocs.io/en/stable/) 문서를 참고하세요.
 
 ## 설치하기
@@ -33,3 +33,15 @@ $ cd dev-be
 
 # 의존성 설치하기
 $ pip install -r requirements.txt
+
+# env에는 다음과 같이 요구됩니다.
+ MONGO_DB_URL=
+ MONGO_DB_NAME=
+ REDIS_URL=
+ SMTP_SERVER=
+ SMTP_PORT=
+ SENDER_EMAIL=
+ SMTP_PASSWORD=
+
+# 다음과 같이 서버를 실행합니다.
+$ uvicorn main:app 
