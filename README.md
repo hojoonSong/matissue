@@ -133,8 +133,8 @@
 ```
 　
 ## 포지션
-- :lemon: 백엔드 팀장 송호준 : USER, Email 인증, Websocket 구현 담당
--  :green_apple:  맛이슈 팀장 신유빈 : Recipe, Comment, 배포 담당
+- :lemon: 백엔드 팀장 송호준 : USERS, Email 인증, Websocket 구현 담당
+-  :green_apple:  맛이슈 팀장 신유빈 : RECIPIES, COMMENT, 배포 담당
 
 
 　
