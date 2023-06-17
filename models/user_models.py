@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr, validator
-from typing import Optional, List
+from typing import Optional, Set
 from datetime import datetime
 from fastapi import HTTPException
 import re
@@ -11,8 +11,8 @@ class UserBase(BaseModel):
     email: EmailStr
     birth_date: str
     img: str
-    subscriptions: Optional[List[str]] = []  # 내가 구독하고 있는 사람들
-    fans: Optional[List[str]] = []  # 나를 구독하고 있는 사람들
+    subscriptions: Optional[Set[str]] = set()  # 내가 구독하고 있는 사람들
+    fans: Optional[Set[str]] = set()  # 나를 구독하고 있는 사람들
 
 
 class UserIn(UserBase):

@@ -126,7 +126,6 @@ async def logout(request: Request, response: Response):
 )
 async def get_user(current_user: str = Depends(get_current_session)):
     user_in_db = await user_dao.get_user_by_id(current_user)
-    print(current_user)
     if not user_in_db:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다!")
 
@@ -140,7 +139,6 @@ async def get_user(current_user: str = Depends(get_current_session)):
         "fans": user_in_db.fans,
         "subscriptions": user_in_db.subscriptions,
     }
-
 
 @router.get(
     "/", dependencies=[Depends(get_current_session)], responses=common_responses
@@ -230,7 +228,6 @@ async def get_subscriptions(user_id: str):
 )
 async def get_chef(user_id: str):
     user_in_db = await user_dao.get_user_by_id(user_id)
-    print(user_id)
     if not user_in_db:
         raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
 

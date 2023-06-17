@@ -13,6 +13,13 @@ class UserDao:
         self.collection = self.db_manager.get_collection("users")
 
     async def create_user_in_db(self, user_in_db: UserInDB):
+        # subscriptions와 fans를 set에서 list로 변환 
+        if isinstance(user_in_db.subscriptions, set):
+            user_in_db.subscriptions = list(user_in_db.subscriptions)
+        if isinstance(user_in_db.fans, set):
+            user_in_db.fans = list(user_in_db.fans)
+
+        # 데이터베이스에 삽입
         result = await self.collection.insert_one(user_in_db.dict())
         return str(result.inserted_id)
 
@@ -86,7 +93,6 @@ class UserDao:
     async def modify_subscription(
         self, current_user: str, follow_user_id: str, subscribe: bool
     ) -> None:
-        # async with self.db.transaction():  # Database Transaction
         user = await self.get_user_by_id(current_user)
         follow_user = await self.get_user_by_id(follow_user_id)
 
@@ -97,24 +103,37 @@ class UserDao:
         if current_user == follow_user_id:
             raise HTTPException(status_code=400, detail="본인을 구독 할 수 없습니다.")
 
-        if isinstance(user.subscriptions, list) and isinstance(
-            follow_user.fans, list
-        ):  # 데이터 타입 체크
+        if (isinstance(user.subscriptions, (list, set)) and
+            isinstance(follow_user.fans, (list, set))):  # 데이터 타입 체크
+
+            # subscriptions와 fans를 set으로 변환
+            user_subscriptions = set(user.subscriptions)
+            follow_user_fans = set(follow_user.fans)
+
             if subscribe:
-                if follow_user_id in user.subscriptions:
+                if follow_user_id in user_subscriptions:
                     raise HTTPException(status_code=409, detail="이미 구독 중입니다")
                 else:
-                    user.subscriptions.append(follow_user_id)
-                    follow_user.fans.append(current_user)
+                    user_subscriptions.add(follow_user_id)
+                    follow_user_fans.add(current_user)
             else:
-                if follow_user_id in user.subscriptions:
-                    user.subscriptions.remove(follow_user_id)
-                    follow_user.fans.remove(current_user)
-
+                if follow_user_id in user_subscriptions:
+                    user_subscriptions.remove(follow_user_id)
+                    follow_user_fans.remove(current_user)
                 else:
                     raise HTTPException(status_code=409, detail="구독을 취소할 수 없습니다.")
+
+            user.subscriptions = list(user_subscriptions)
+            follow_user.fans = list(follow_user_fans)
+
+            # Update the database
+            await self.update_user_in_db(
+                current_user, {"subscriptions": user.subscriptions}
+            )
+            await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
+
         else:
-            raise HTTPException(status_code=500, detail="서버 내부 오류입니다.")
+            raise HTTPException(status_code=500, detail="서버 내부 오류입니다.")     
 
         await self.update_user_in_db(
             current_user, {"subscriptions": user.subscriptions}
@@ -148,11 +167,12 @@ class UserDao:
         return []
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
-        user = await self.get_user_by_id(current_user)
-        if not user:
-            raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
-        return follow_user_id in user.subscriptions
-
+        user_doc = await self.collection.find_one(
+        {"user_id": current_user, "subscriptions": follow_user_id},
+        projection={"subscriptions": 1}
+        )
+    
+        return user_doc is not None
 
 def get_user_dao() -> UserDao:
     db_manager = MongoDBManager()
