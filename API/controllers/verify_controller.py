@@ -8,7 +8,6 @@ from fastapi.templating import Jinja2Templates
 from utils.email_manager import send_html_email
 
 router = APIRouter()
-session_manager = SessionManager()
 user_dao = UserDao()
 user_service = UserService(user_dao)
 templates = Jinja2Templates(directory="templates")
@@ -20,12 +19,12 @@ async def verify(
     session_manager: SessionManager = Depends(SessionManager),
     user_dao: UserDao = Depends(get_user_dao),
 ):
-    email = session_manager.verify_email(code)
+    email = await session_manager.verify_email(code)
     if not email:
         raise HTTPException(status_code=400, detail="유효하지 않은 주소입니다.")
 
     # 이메일 인증이 완료되면, 캐싱해뒀던 사용자 정보를 불러와서 회원가입 진행
-    user_in = session_manager.get_user_info(email)
+    user_in = await session_manager.get_user_info(email)
     if user_in is None:
         raise HTTPException(status_code=400, detail="이메일 인증 코드가 만료되었거나 잘못되었습니다.")
 
@@ -63,12 +62,12 @@ async def forgot_id(user: UserForgotIDIn, user_dao: UserDao = Depends(get_user_d
 
 
 @router.post("/email-verification", responses=common_responses)
-async def send_verification_code(email: str):
+async def send_verification_code(email: str, session_manager: SessionManager = Depends(SessionManager)):
     existing_email = await user_dao.get_user_by_email(email)
     if existing_email:
         raise HTTPException(status_code=404, detail=f"사용자 이메일 '{email}'은 사용할 수 없습니다.")
 
-    verification_code = session_manager.create_email_verification_code(email)
+    verification_code = await session_manager.create_email_verification_code(email)
     subject = "맛이슈 이메일 인증 이메일입니다."
 
     # HTML 템플릿 렌더링
@@ -110,8 +109,8 @@ async def forgot_password(
 
 
 @router.post("/email-verification-check", responses=common_responses)
-async def check_verification_code(email: str, code: str):
-    if not session_manager.check_verification_code(email, code):
+async def check_verification_code(email: str, code: str, session_manager: SessionManager = Depends(SessionManager)):
+    if not await session_manager.check_verification_code(email, code):
         raise HTTPException(status_code=400, detail="잘못된 인증 코드입니다.")
 
     return {"message": "인증 코드가 확인되었습니다."}

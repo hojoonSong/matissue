@@ -15,7 +15,7 @@ from utils.session_manager import (
 )
 from utils.response_manager import common_responses
 from utils.email_manager import send_verification_email
-from utils.notification_manager import NotificationManager
+from utils.notification_manager import NotificationManager, get_notification_manager
 
 
 router = APIRouter()
@@ -30,7 +30,7 @@ async def create_user(
 ):
     await user_service.validate_user_creation(user)
 
-    verification_code = session_manager.create_verification_code(user.email)
+    verification_code = await session_manager.create_verification_code(user.email)
     verification_link = get_verification_link(user.email, verification_code)
 
     send_verification_email(user.email, verification_link)
@@ -96,7 +96,7 @@ async def login(user: LoginRequest, response: Response):
             httponly="True",
             samesite="None",
         )
-        return LoginResponse(message="로그인에 성공했습니다!", session_id=result["session_id"])
+        return LoginResponse(message="로그인에 성공했습니다!", session_id=str(result["session_id"]))
     raise HTTPException(status_code=400, detail="로그인에 실패했습니다.")
 
 
@@ -177,7 +177,7 @@ async def toggle_subscription(
     follow_user_id: str,
     subscribe: bool = True,
     current_user: str = Depends(get_current_session),
-    notification_manager: NotificationManager = Depends(NotificationManager),
+    notification_manager: NotificationManager = Depends(get_notification_manager),
 ):
     try:
         await user_dao.modify_subscription(current_user, follow_user_id, subscribe)
@@ -185,7 +185,7 @@ async def toggle_subscription(
             follower_name = await user_dao.get_username_by_id(current_user)
             message = f"{follower_name}님이 회원님을 구독하였습니다!"
             # 알림 보내기
-            notification_manager.send_notification(follow_user_id, message)
+            await notification_manager.send_notification(follow_user_id, message)
             return {"message": "구독 완료"}
         else:
             return {"message": "구독 취소 완료"}
@@ -196,13 +196,12 @@ async def toggle_subscription(
 
 @router.get(
     "/subscription/status/{follow_user_id}",
-    dependencies=[Depends(get_current_session)],
     responses=common_responses,
 )
 async def check_subscription_status(
-    follow_user_id: str, current_user: str = Depends(get_current_session)
+    follow_user_id: str, user_id: str
 ):
-    is_subscribed = await user_service.is_user_subscribed(current_user, follow_user_id)
+    is_subscribed = await user_service.is_user_subscribed(user_id, follow_user_id)
     return {"is_subscribed": is_subscribed}
 
 

@@ -1,11 +1,11 @@
 from models.user_models import UserIn, UserInDB, UserUpdate
 from utils.hash_manager import Hasher
 from utils.session_manager import SessionManager
+import aioredis
 from dao.user_dao import UserDao, get_user_dao
 from fastapi import HTTPException, Response, Depends
 from utils.config import get_settings
 from utils.permission_manager import check_user_permissions
-import secrets
 import secrets
 import redis
 
@@ -23,6 +23,7 @@ class UserService:
         self.user_dao = user_dao
         self.session_manager = SessionManager()
         self.response = Response()
+        
 
     async def create_user(cls, user: UserIn):
         await cls.validate_user_creation(user)
@@ -42,7 +43,7 @@ class UserService:
         if not Hasher.verify_password(password, user.hashed_password):
             raise HTTPException(status_code=401, detail=f"비밀번호가 일치하지 않습니다.")
 
-        self.session_manager.delete_session(session_id)
+        await self.session_manager.delete_session(session_id)
         return await self.user_dao.delete_user(user_id)
 
     async def update_user(self, user: UserUpdate, current_user):
@@ -57,7 +58,7 @@ class UserService:
             and user.email is not None
             and user.email != current_user_in_db.email
         ):
-            if not self.session_manager.check_verification_code(
+            if not await self.session_manager.check_verification_code(
                 user.email, user.email_code
             ):
                 raise Exception("잘못된 인증 코드입니다.")
@@ -76,8 +77,11 @@ class UserService:
         return updated_user
 
     async def login(self, user_id: str, password: str):
+        redis_client = await self.session_manager.get_redis_client()
         timeout_key = f"timeout:{user_id}"
-        remaining_time = redis_client.ttl(timeout_key)
+
+        # ttl 메서드의 결과를 비동기로 처리합니다.
+        remaining_time = await redis_client.ttl(timeout_key)
         if remaining_time > 0:
             raise HTTPException(
                 status_code=429,
@@ -90,13 +94,13 @@ class UserService:
 
         if not Hasher.verify_password(password, user.hashed_password):
             failed_key = f"failed:{user_id}"
-            failed_attempts = redis_client.incr(failed_key)
+            failed_attempts = await redis_client.incr(failed_key)
             if failed_attempts >= MAX_LOGIN_ATTEMPTS:
                 redis_client.set(timeout_key, "1", LOGIN_TIMEOUT)
                 redis_client.delete(failed_key)
             raise HTTPException(status_code=401, detail="Invalid credentials")
 
-        session_id = self.session_manager.create_session(user.user_id)
+        session_id = await self.session_manager.create_session(user.user_id)
         return {"session_id": session_id}
 
     async def logout(self, session_id: str, response: Response):

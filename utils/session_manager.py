@@ -7,13 +7,11 @@ from .hash_manager import Hasher
 import uuid
 import random
 import string
-import redis
+import aioredis
 from datetime import datetime
 
 
 settings = get_settings()
-
-redis_client = redis.Redis.from_url(settings.redis_url, decode_responses=True)
 
 
 class Session(BaseModel):
@@ -22,38 +20,46 @@ class Session(BaseModel):
 
 class SessionManager:
     def __init__(self):
-        self.redis_client = redis.Redis.from_url(
-            settings.redis_url, decode_responses=True
-        )
+        self.redis_client = None
 
-    def create_session(self, data: str):
+    async def get_redis_client(self):
+        if self.redis_client is None:
+            self.redis_client = await aioredis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
+        return self.redis_client
+
+    async def create_session(self, data: str):
         session_id = str(uuid.uuid4())
-        self.redis_client.set(session_id, data)
+        redis_client = await self.get_redis_client()
+        await redis_client.set(session_id, data)
         return session_id
 
-    def get_session(self, session_id: str, expiration: int = 3600):
+    async def get_session(self, session_id: str, expiration: int = 3600):
         if session_id is None:
             raise ValueError("Session ID cannot be None")
-        data = self.redis_client.get(session_id)
+        redis_client = await self.get_redis_client()
+        data = await redis_client.get(session_id)
         if data is None:
             raise HTTPException(status_code=401, detail="Invalid session id")
-        self.redis_client.expire(session_id, expiration)
+        await redis_client.expire(session_id, expiration)
         return data
 
     async def delete_session(self, session_id: str):
-        result = self.redis_client.delete(session_id)
+        redis_client = await self.get_redis_client()
+        result = await redis_client.delete(session_id)
         return result > 0
 
-    def create_verification_code(self, email: str):
+    async def create_verification_code(self, email: str):
         verification_code = str(uuid.uuid4())
-        self.redis_client.set(verification_code, email, ex=86400)
+        redis_client = await self.get_redis_client()
+        await redis_client.set(verification_code, email, expire=86400)
         return verification_code
 
-    def verify_email(self, code: str):
-        email = self.redis_client.get(code)
+    async def verify_email(self, code: str):
+        redis_client = await self.get_redis_client()
+        email = await redis_client.get(code)
         if email is None:
             return False
-        self.redis_client.delete(code)
+        await redis_client.delete(code)
         return email
 
     async def save_user_info(self, user: UserIn):
@@ -64,37 +70,39 @@ class SessionManager:
             created_at=datetime.now(),
         )
         user_json = user_in_redis.json()
-        self.redis_client.set(user_in_redis.email, user_json, ex=86400)
+        redis_client = await self.get_redis_client()
+        await redis_client.set(user_in_redis.email, user_json, expire=86400)
 
-    def get_user_info(self, email: str):
-        user_json = self.redis_client.get(email)
+    async def get_user_info(self, email: str):
+        redis_client = await self.get_redis_client()
+        user_json = await redis_client.get(email)
         if user_json is None:
             return None
         user_in_redis = UserInDB.parse_raw(user_json)
         return UserInDB(**user_in_redis.dict(), password=user_in_redis.hashed_password)
 
-    def create_email_verification_code(self, email: str):
+    async def create_email_verification_code(self, email: str):
         verification_code = "".join(
             random.choices(string.ascii_uppercase + string.digits, k=6)
         )
-        self.redis_client.set(verification_code, email, ex=1800)
+        redis_client = await self.get_redis_client()
+        await redis_client.set(verification_code, email, expire=1800)
         return verification_code
 
-    def check_verification_code(self, email: str, code: str):
-        verified_email = self.verify_email(code)
+    async def check_verification_code(self, email: str, code: str):
+        verified_email = await self.verify_email(code)
         return verified_email == email
-
-
+    
 def get_verification_link(email: str, verification_code: str) -> str:
     base_url = "https://www.matissue.com/auth/verify"
     verification_link = f"{base_url}?code={verification_code}"
     return verification_link
 
 
-def get_current_session(request: Request) -> str:
+async def get_current_session(request: Request) -> str:
     session_id = request.cookies.get("session-id")
     session_manager = SessionManager()
-    current_user = session_manager.get_session(session_id)
+    current_user = await session_manager.get_session(session_id)
 
     # 관리자인 경우, 예외처리를 합니다.
     if current_user and getattr(current_user, "id", None) == "admin":
@@ -118,7 +126,7 @@ async def get_current_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesssion ID가 없습니다."
         )
-    user_id = session_manager.get_session(session.id)
+    user_id = await session_manager.get_session(session.id)
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,7 +138,7 @@ async def get_current_user(
 async def verify_email(
     code: str, session_manager: SessionManager = Depends(SessionManager)
 ):
-    verification_result = session_manager.verify_email(code)
+    verification_result = await session_manager.verify_email(code)
     if not verification_result:
         raise HTTPException(status_code=400, detail="Invalid verification code")
     return {"message": "Email verification successful"}
