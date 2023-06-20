@@ -189,7 +189,6 @@ async def get_recipe_by_recipe_id(recipe_id: str):
         raise HTTPException(
             status_code=404, detail=f"Recipe with id {recipe_id} not found"
         )
-    print("🍏",recipe)
     comments = await recipe_service.get_comments(recipe_id)
     recipe["comments"] = comments
     await recipe_service.update_recipe_view(recipe_id)
@@ -208,9 +207,11 @@ async def register_recipe(
         new_recipe = RecipeCreate(**recipe)  # dict를 RecipeCreate 클래스의 인스턴스로 변환
         result = await recipe_service.register_recipe(new_recipe)
         if result is None:
-            raise HTTPException(status_code=500, detail="Failed to insert recipe")
-        serialized_recipes = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_recipes)
+            raise HTTPException(
+                status_code=500, detail="Failed to insert recipe")
+        # serialized_recipes = json.loads(json.dumps(result, default=str))
+        return Response(status_code=201)
+        # return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -246,11 +247,10 @@ async def update_recipe(
             raise HTTPException(
                 status_code=404, detail=f"Recipe with id {recipe_id} not found"
             )
-        updated_document = await recipe_service.update_recipe(
-            recipe_id, updated_recipe, current_user
-        )
-        serialized_recipe = json.loads(json.dumps(updated_document, default=str))
-        return JSONResponse(content=serialized_recipe, status_code=201)
+        updated_document = await recipe_service.update_recipe(recipe_id, updated_recipe, current_user)
+        # serialized_recipe = json.loads(
+        #     json.dumps(updated_document, default=str))
+        return Response(status_code=201)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
@@ -268,8 +268,8 @@ async def update_like(recipe_id: str, current_user: str = Depends(get_current_se
             raise HTTPException(
                 status_code=404, detail=f"Recipe with id {recipe_id} not found"
             )
-        serialized_recipe = json.loads(json.dumps(recipe, default=str))
-        return JSONResponse(content=serialized_recipe, status_code=201)
+        # serialized_recipe = json.loads(json.dumps(recipe, default=str))
+        return Response(status_code=201)
     except HTTPException as e:
         raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
@@ -295,9 +295,11 @@ async def register_comment(
     try:
         result = await recipe_service.register_comment(recipe_id, comment, current_user)
         if result is None:
-            raise HTTPException(status_code=500, detail="Failed to insert comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
+            raise HTTPException(
+                status_code=500, detail="Failed to insert comment")
+        # serialized_comment = json.loads(json.dumps(result, default=str))
+        return Response(status_code=201)
+        # return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
@@ -332,9 +334,10 @@ async def update_comment(
     try:
         result = await recipe_service.update_comment(comment_id, comment, current_user)
         if result is None:
-            raise HTTPException(status_code=500, detail="Failed to update comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
+            raise HTTPException(
+                status_code=500, detail="Failed to update comment")
+        # serialized_comment = json.loads(json.dumps(result, default=str))
+        return Response(status_code=201)
     except Exception as e:
         raise HTTPException(
             status_code=404, detail=f"Controller:Failed to update comment{str(e)}"
@@ -352,9 +355,10 @@ async def update_comment_like(
     try:
         result = await recipe_service.update_comment_like(comment_id, current_user)
         if result is None:
-            raise HTTPException(status_code=500, detail="Failed to update comment")
-        serialized_comment = json.loads(json.dumps(result, default=str))
-        return JSONResponse(content=serialized_comment, status_code=201)
+            raise HTTPException(
+                status_code=500, detail="Failed to update comment")
+        # serialized_comment = json.loads(json.dumps(result, default=str))
+        return Response(status_code=201)
     except Exception as e:
         raise HTTPException(
             status_code=404, detail=f"Controller:Failed to update comment{str(e)}"

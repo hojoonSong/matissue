@@ -99,6 +99,8 @@ class RecipeService:
     async def get_recipes_by_ingredients(self, value):
         try:
             results = await self.recipe_dao.get_recipes_by_ingredients(value)
+            for recipe in results:
+                recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])  
             return results
         except Exception as e:
             logger.error(f"Failed to get recipes by ingredients: {str(e)}")

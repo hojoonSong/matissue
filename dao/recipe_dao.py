@@ -207,8 +207,8 @@ class RecipeDao:
             comment_nickname=comment_nickname,
             comment_profile_img=comment_profile_img
         )
-        await self.comment_collection.insert_one(comment_base.dict())
-        inserted_data = await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
+        inserted_data = await self.comment_collection.insert_one(comment_base.dict())
+        # await self.comment_collection.find_one({"comment_id": comment_base.comment_id})
         return inserted_data
 
     async def update_comment(self, comment_id, modified_comment, current_user):
