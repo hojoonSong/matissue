@@ -182,6 +182,22 @@ async def get_recipes_by_ingredients(value: str):
         raise HTTPException(status_code=404, detail=str(e))
 
 
+@router.get("/{user_id}", tags=["recipes_get"])
+async def get_recipe_by_user(
+    user_id, page: int = 1, limit: int = 150
+):
+    skip_count = (page - 1) * limit
+    recipes = await recipe_service.get_recipes_by_user_id(
+        user_id, skip=skip_count, limit=limit
+    )
+    if len(recipes) == 0:
+        return JSONResponse(content=[])
+    if recipes:
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        return serialized_recipes
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
 @router.get("/{recipe_id}", tags=["recipes_get"])
 async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
