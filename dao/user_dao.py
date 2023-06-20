@@ -94,7 +94,7 @@ class UserDao:
     async def modify_subscription(
         self, current_user: str, follow_user_id: str, subscribe: bool
     ) -> None:
-        # 데이터를 동시에 불러옵니다.
+        # 동시에 데이터를 처리
         user, follow_user = await asyncio.gather(
             self.get_user_by_id(current_user),
             self.get_user_by_id(follow_user_id),

@@ -38,11 +38,20 @@ class SessionManager:
     async def get_session(self, session_id: str, expiration: int = 3600):
         if session_id is None:
             raise ValueError("Session ID cannot be None")
+
         redis_client = await self.get_redis_client()
-        data = await redis_client.get(session_id)
+
+        # Use a pipeline to group the commands
+        pipeline = redis_client.pipeline()
+        pipeline.get(session_id)
+        pipeline.expire(session_id, expiration)
+
+        # Execute the commands in a single request
+        data, _ = await pipeline.execute()
+
         if data is None:
             raise HTTPException(status_code=401, detail="Invalid session id")
-        await redis_client.expire(session_id, expiration)
+
         return data
 
     async def delete_session(self, session_id: str):
