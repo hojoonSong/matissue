@@ -82,8 +82,6 @@ async def search_recipes_by_title(value: str, page: int = 1, limit: int = 160):
         result.append(json_util.loads(json_util.dumps(document)))
     if len(result) == 0:
         return JSONResponse(content=[])
-    if not result:
-        raise HTTPException(status_code=404, detail="No recipes found")
     serialized_recipes = json.loads(json.dumps(result, default=str))
     return JSONResponse(content=serialized_recipes)
 
@@ -104,7 +102,7 @@ async def get_recipes_by_user_id(
     if len(recipes) == 0:
         return JSONResponse(content=[])
     if recipes:
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        # serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return RecipeGetList(recipes=recipes)
     else:
         raise HTTPException(status_code=404, detail="User not found")
@@ -117,9 +115,9 @@ async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
         recipes = await recipe_service.get_recipes_by_popularity(
             skip=skip_count, limit=limit
         )
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -132,9 +130,9 @@ async def get_recipes_by_latest(page: int = 1, limit: int = 160):
         recipes = await recipe_service.get_recipes_by_latest(
             skip=skip_count, limit=limit
         )
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -147,9 +145,9 @@ async def get_recipes_by_single_serving(page: int = 1, limit: int = 160):
         recipes = await recipe_service.get_recipes_by_single_serving(
             skip=skip_count, limit=limit
         )
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -162,9 +160,9 @@ async def get_recipes_by_vegetarian(page: int = 1, limit: int = 160):
         recipes = await recipe_service.get_recipes_by_vegetarian(
             skip=skip_count, limit=limit
         )
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -174,9 +172,9 @@ async def get_recipes_by_vegetarian(page: int = 1, limit: int = 160):
 async def get_recipes_by_ingredients(value: str):
     try:
         recipes = await recipe_service.get_recipes_by_ingredients(value)
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -186,17 +184,17 @@ async def get_recipes_by_ingredients(value: str):
 async def get_recipe_by_user(
     user_id, page: int = 1, limit: int = 150
 ):
-    skip_count = (page - 1) * limit
-    recipes = await recipe_service.get_recipes_by_user_id(
-        user_id, skip=skip_count, limit=limit
-    )
-    if len(recipes) == 0:
-        return JSONResponse(content=[])
-    if recipes:
+    try:
+        skip_count = (page - 1) * limit
+        recipes = await recipe_service.get_recipes_by_user_id(
+            user_id, skip=skip_count, limit=limit
+        )
+        if len(recipes) == 0:
+            return JSONResponse(content=[])
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
-        return serialized_recipes
-    else:
-        raise HTTPException(status_code=404, detail="User not found")
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.get("/{recipe_id}", tags=["recipes_get"])
 async def get_recipe_by_recipe_id(recipe_id: str):

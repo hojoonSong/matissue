@@ -96,7 +96,7 @@ class RecipeDao:
         result = await self.comment_collection.find({"comment_parent": recipe_id}).to_list(length=None)
         return result
 
-     # post
+    # post
 
     async def register_recipe(self, recipe: RecipeCreate):
         user = await self.user_collection.find_one({"user_id": recipe.user_id})
