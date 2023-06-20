@@ -182,6 +182,7 @@ async def get_recipe_by_recipe_id(recipe_id: str):
             status_code=404,
             detail=f"Recipe with id {recipe_id} not found"
         )
+    print("🍏",recipe)
     comments = await recipe_service.get_comments(recipe_id)
     recipe['comments'] = comments
     await recipe_service.update_recipe_view(recipe_id)
