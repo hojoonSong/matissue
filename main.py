@@ -12,9 +12,15 @@ origins = [
     "https://www.matissue.com",
     "https://matissue.com/",
     "https://matissue.com",
-    # 필요한 출처를 추가하십시오.
+    "https://matissue.onrender.com",
+    "https://matissue-1jim.onrender.com",
+    "https://kdt-sw-4-team10.elicecoding.com",
+    "https://kdt-sw-4-team10.elicecoding.com/",
+    "https://matissue.p-e.kr/",
+    "https://matissue.p-e.kr",
+    "https://mat-issue.onrender.com/",
+    "https://mat-issue.onrender.com"
 ]
-
 
 app.add_middleware(
     CORSMiddleware,
