@@ -62,7 +62,9 @@ async def forgot_id(user: UserForgotIDIn, user_dao: UserDao = Depends(get_user_d
 
 
 @router.post("/email-verification", responses=common_responses)
-async def send_verification_code(email: str, session_manager: SessionManager = Depends(SessionManager)):
+async def send_verification_code(
+    email: str, session_manager: SessionManager = Depends(SessionManager)
+):
     existing_email = await user_dao.get_user_by_email(email)
     if existing_email:
         raise HTTPException(status_code=404, detail=f"사용자 이메일 '{email}'은 사용할 수 없습니다.")
@@ -109,7 +111,9 @@ async def forgot_password(
 
 
 @router.post("/email-verification-check", responses=common_responses)
-async def check_verification_code(email: str, code: str, session_manager: SessionManager = Depends(SessionManager)):
+async def check_verification_code(
+    email: str, code: str, session_manager: SessionManager = Depends(SessionManager)
+):
     if not await session_manager.check_verification_code(email, code):
         raise HTTPException(status_code=400, detail="잘못된 인증 코드입니다.")
 

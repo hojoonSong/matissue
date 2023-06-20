@@ -24,7 +24,9 @@ class SessionManager:
 
     async def get_redis_client(self):
         if self.redis_client is None:
-            self.redis_client = await aioredis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
+            self.redis_client = await aioredis.from_url(
+                settings.redis_url, encoding="utf-8", decode_responses=True
+            )
         return self.redis_client
 
     async def create_session(self, data: str):
@@ -92,7 +94,8 @@ class SessionManager:
     async def check_verification_code(self, email: str, code: str):
         verified_email = await self.verify_email(code)
         return verified_email == email
-    
+
+
 def get_verification_link(email: str, verification_code: str) -> str:
     base_url = "https://www.matissue.com/auth/verify"
     verification_link = f"{base_url}?code={verification_code}"
@@ -116,23 +119,6 @@ async def get_current_session(request: Request) -> str:
         )
 
     return current_user
-
-
-async def get_current_user(
-    session: Session = Depends(),
-    session_manager: SessionManager = Depends(SessionManager),
-):
-    if session.id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Sesssion ID가 없습니다."
-        )
-    user_id = await session_manager.get_session(session.id)
-    if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid session ID",
-        )
-    return user_id
 
 
 async def verify_email(

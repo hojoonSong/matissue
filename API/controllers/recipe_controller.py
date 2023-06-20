@@ -6,11 +6,20 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from typing import List
 import json
-from models.recipe_models import CommentBase, CommentIn, CommentUpdate, RecipeBase, RecipeCreate, RecipeGetList, RecipeIn, RecipeUpdate
+from models.recipe_models import (
+    CommentBase,
+    CommentIn,
+    CommentUpdate,
+    RecipeBase,
+    RecipeCreate,
+    RecipeGetList,
+    RecipeIn,
+    RecipeUpdate,
+)
 from dao.recipe_dao import RecipeDao
 
 from services.recipe_service import RecipeService
-from utils.session_manager import SessionManager, get_current_session, get_current_user
+from utils.session_manager import SessionManager, get_current_session
 
 router = APIRouter()
 recipe_dao = RecipeDao()
@@ -21,10 +30,7 @@ collection = db_manager.get_collection("recipes")
 
 
 @router.get("/", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_all_recipes(    
-    page: int = 1,
-    limit: int = 160
-):
+async def get_all_recipes(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
         recipes = await recipe_service.get_all_recipes(skip=skip_count, limit=limit)
@@ -38,13 +44,13 @@ async def get_all_recipes(
 
 @router.get("/categories", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_categories(
-    value: str = Query(...),
-    page: int = 1,
-    limit: int = 160
+    value: str = Query(...), page: int = 1, limit: int = 160
 ):
     try:
         skip_count = (page - 1) * limit
-        recipes = await recipe_service.get_recipes_by_categories(value, skip=skip_count, limit=limit)
+        recipes = await recipe_service.get_recipes_by_categories(
+            value, skip=skip_count, limit=limit
+        )
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
@@ -56,17 +62,19 @@ async def get_recipes_by_categories(
 @router.get("/search", response_model=RecipeGetList, tags=["recipes_get"])
 async def search_recipes_by_title(value: str, page: int = 1, limit: int = 160):
     pipeline = [
-        {"$match": {
-            "$or": [
-                {"recipe_title": {"$regex": value, "$options": "i"}},
-                {"recipe_category": {"$regex": value, "$options": "i"}},
-                {"recipe_description": {"$regex": value, "$options": "i"}},
-                {"recipe_info": {"$regex": value, "$options": "i"}},
-                {"recipe_ingredients.name": {"$regex": value, "$options": "i"}}
-            ]
-        }},
+        {
+            "$match": {
+                "$or": [
+                    {"recipe_title": {"$regex": value, "$options": "i"}},
+                    {"recipe_category": {"$regex": value, "$options": "i"}},
+                    {"recipe_description": {"$regex": value, "$options": "i"}},
+                    {"recipe_info": {"$regex": value, "$options": "i"}},
+                    {"recipe_ingredients.name": {"$regex": value, "$options": "i"}},
+                ]
+            }
+        },
         {"$skip": (page - 1) * limit},
-        {"$limit": limit}
+        {"$limit": limit},
     ]
     result_cursor = collection.aggregate(pipeline)
     result = []
@@ -80,13 +88,19 @@ async def search_recipes_by_title(value: str, page: int = 1, limit: int = 160):
     return JSONResponse(content=serialized_recipes)
 
 
-@router.get("/user", dependencies=[Depends(get_current_session)], response_model=RecipeGetList, tags=["recipes_get"])
+@router.get(
+    "/user",
+    dependencies=[Depends(get_current_session)],
+    response_model=RecipeGetList,
+    tags=["recipes_get"],
+)
 async def get_recipes_by_user_id(
-    current_user: str = Depends(get_current_session), 
-    page: int = 1,
-    limit: int = 150):
+    current_user: str = Depends(get_current_session), page: int = 1, limit: int = 150
+):
     skip_count = (page - 1) * limit
-    recipes = await recipe_service.get_recipes_by_user_id(current_user,skip=skip_count, limit=limit)
+    recipes = await recipe_service.get_recipes_by_user_id(
+        current_user, skip=skip_count, limit=limit
+    )
     if len(recipes) == 0:
         return JSONResponse(content=[])
     if recipes:
@@ -97,28 +111,27 @@ async def get_recipes_by_user_id(
 
 
 @router.get("/popularity", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_recipes_by_popularity(    
-    page: int = 1,
-    limit: int = 160):
+async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
-        recipes = await recipe_service.get_recipes_by_popularity(skip=skip_count, limit=limit)
+        recipes = await recipe_service.get_recipes_by_popularity(
+            skip=skip_count, limit=limit
+        )
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
-    
+        raise HTTPException(status_code=404, detail=str(e))
+
+
 @router.get("/latest", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_recipes_by_latest(
-    page: int = 1,
-    limit: int = 160
-):
+async def get_recipes_by_latest(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
-        recipes = await recipe_service.get_recipes_by_latest(skip=skip_count, limit=limit)
+        recipes = await recipe_service.get_recipes_by_latest(
+            skip=skip_count, limit=limit
+        )
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
@@ -128,37 +141,33 @@ async def get_recipes_by_latest(
 
 
 @router.get("/single", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_recipes_by_single_serving(    
-    page: int = 1,
-    limit: int = 160
-    ):
+async def get_recipes_by_single_serving(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
-        recipes = await recipe_service.get_recipes_by_single_serving(skip=skip_count, limit=limit)
+        recipes = await recipe_service.get_recipes_by_single_serving(
+            skip=skip_count, limit=limit
+        )
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/vegetarian", response_model=RecipeGetList, tags=["recipes_get"])
-async def get_recipes_by_vegetarian(
-    page: int = 1,
-    limit: int = 160
-    ):
+async def get_recipes_by_vegetarian(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
-        recipes = await recipe_service.get_recipes_by_vegetarian(skip=skip_count, limit=limit)
+        recipes = await recipe_service.get_recipes_by_vegetarian(
+            skip=skip_count, limit=limit
+        )
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/ingredients", response_model=RecipeGetList, tags=["recipes_get"])
@@ -170,8 +179,7 @@ async def get_recipes_by_ingredients(value: str):
             return JSONResponse(content=[])
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/{recipe_id}", tags=["recipes_get"])
@@ -179,144 +187,178 @@ async def get_recipe_by_recipe_id(recipe_id: str):
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
     if recipe is None:
         raise HTTPException(
-            status_code=404,
-            detail=f"Recipe with id {recipe_id} not found"
+            status_code=404, detail=f"Recipe with id {recipe_id} not found"
         )
     comments = await recipe_service.get_comments(recipe_id)
-    recipe['comments'] = comments
+    recipe["comments"] = comments
     await recipe_service.update_recipe_view(recipe_id)
     serialized_recipes = json.loads(json.dumps(recipe, default=str))
     return JSONResponse(content={"recipe": serialized_recipes})
 
 
-@router.post("/", dependencies=[Depends(get_current_session)], status_code=201, tags=["recipes"])
-async def register_recipe(recipe: dict, current_user: str = Depends(get_current_session)):
+@router.post(
+    "/", dependencies=[Depends(get_current_session)], status_code=201, tags=["recipes"]
+)
+async def register_recipe(
+    recipe: dict, current_user: str = Depends(get_current_session)
+):
     try:
         recipe["user_id"] = current_user
         new_recipe = RecipeCreate(**recipe)  # dict를 RecipeCreate 클래스의 인스턴스로 변환
         result = await recipe_service.register_recipe(new_recipe)
         if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to insert recipe")
+            raise HTTPException(status_code=500, detail="Failed to insert recipe")
         serialized_recipes = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.delete("/{recipe_id}", status_code=204, dependencies=[Depends(get_current_session)], tags=["recipes"])
-async def delete_recipe(recipe_id: str, current_user: str = Depends(get_current_session)):
+@router.delete(
+    "/{recipe_id}",
+    status_code=204,
+    dependencies=[Depends(get_current_session)],
+    tags=["recipes"],
+)
+async def delete_recipe(
+    recipe_id: str, current_user: str = Depends(get_current_session)
+):
     try:
         result = await recipe_service.delete_one_recipe(recipe_id, current_user)
         if result == 1:
             return Response(status_code=204)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.patch("/{recipe_id}", dependencies=[Depends(get_current_session)], tags=["recipes"])
-async def update_recipe(recipe_id: str, updated_recipe: RecipeUpdate, current_user: str = Depends(get_current_session)):
+@router.patch(
+    "/{recipe_id}", dependencies=[Depends(get_current_session)], tags=["recipes"]
+)
+async def update_recipe(
+    recipe_id: str,
+    updated_recipe: RecipeUpdate,
+    current_user: str = Depends(get_current_session),
+):
     try:
         existing_recipe = await recipe_service.get_recipe_to_update_recipe(recipe_id)
         if existing_recipe is None:
             raise HTTPException(
-                status_code=404,
-                detail=f"Recipe with id {recipe_id} not found"
+                status_code=404, detail=f"Recipe with id {recipe_id} not found"
             )
-        updated_document = await recipe_service.update_recipe(recipe_id, updated_recipe, current_user)
-        serialized_recipe = json.loads(
-            json.dumps(updated_document, default=str))
+        updated_document = await recipe_service.update_recipe(
+            recipe_id, updated_recipe, current_user
+        )
+        serialized_recipe = json.loads(json.dumps(updated_document, default=str))
         return JSONResponse(content=serialized_recipe, status_code=201)
     except HTTPException as e:
-        raise HTTPException(
-            status_code=e.status_code,
-            detail=str(e.detail)
-        )
+        raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
 
-@router.patch("/{recipe_id}/like", status_code=201, dependencies=[Depends(get_current_session)], tags=["recipes"])
+@router.patch(
+    "/{recipe_id}/like",
+    status_code=201,
+    dependencies=[Depends(get_current_session)],
+    tags=["recipes"],
+)
 async def update_like(recipe_id: str, current_user: str = Depends(get_current_session)):
     try:
         recipe = await recipe_service.update_recipe_like(recipe_id, current_user)
         if recipe is None:
             raise HTTPException(
-                status_code=404,
-                detail=f"Recipe with id {recipe_id} not found"
+                status_code=404, detail=f"Recipe with id {recipe_id} not found"
             )
         serialized_recipe = json.loads(json.dumps(recipe, default=str))
         return JSONResponse(content=serialized_recipe, status_code=201)
     except HTTPException as e:
-        raise HTTPException(
-            status_code=e.status_code,
-            detail=str(e.detail)
-        )
+        raise HTTPException(status_code=e.status_code, detail=str(e.detail))
 
 
 @router.get("/comment/{comment_id}", tags=["comment"])
 async def get_comments(comment_id: str):
     result = await recipe_service.get_one_comment(comment_id)
     if result is None:
-        raise HTTPException(
-            status_code=500, detail="Failed to find comment")
+        raise HTTPException(status_code=500, detail="Failed to find comment")
     serialized_comment = json.loads(json.dumps(result, default=str))
     return JSONResponse(content=serialized_comment, status_code=200)
 
 
-@router.post("/comment/{recipe_id}", dependencies=[Depends(get_current_session)], status_code=201, tags=["comment"])
-async def register_comment(recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)):
+@router.post(
+    "/comment/{recipe_id}",
+    dependencies=[Depends(get_current_session)],
+    status_code=201,
+    tags=["comment"],
+)
+async def register_comment(
+    recipe_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)
+):
     try:
         result = await recipe_service.register_comment(recipe_id, comment, current_user)
         if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to insert comment")
+            raise HTTPException(status_code=500, detail="Failed to insert comment")
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.delete("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
-async def delete_comment(comment_id: str, current_user: str = Depends(get_current_session)):
+@router.delete(
+    "/comment/{comment_id}",
+    dependencies=[Depends(get_current_session)],
+    tags=["comment"],
+)
+async def delete_comment(
+    comment_id: str, current_user: str = Depends(get_current_session)
+):
     try:
         result = await recipe_service.delete_comment(comment_id, current_user)
         if result == 0:
-            raise HTTPException(
-                status_code=500, detail="Failed to delete comment")
+            raise HTTPException(status_code=500, detail="Failed to delete comment")
         return Response(status_code=204)
     except Exception as e:
-        raise HTTPException(
-            status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 
-@router.patch("/comment/{comment_id}", dependencies=[Depends(get_current_session)], tags=["comment"])
-async def update_comment(comment_id: str, comment: CommentIn, current_user: str = Depends(get_current_session)) -> CommentUpdate:
+@router.patch(
+    "/comment/{comment_id}",
+    dependencies=[Depends(get_current_session)],
+    tags=["comment"],
+)
+async def update_comment(
+    comment_id: str,
+    comment: CommentIn,
+    current_user: str = Depends(get_current_session),
+) -> CommentUpdate:
     try:
         result = await recipe_service.update_comment(comment_id, comment, current_user)
         if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to update comment")
+            raise HTTPException(status_code=500, detail="Failed to update comment")
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Controller:Failed to update comment{str(e)}")
+            status_code=404, detail=f"Controller:Failed to update comment{str(e)}"
+        )
 
 
-@router.patch("/comment/{comment_id}/like", dependencies=[Depends(get_current_session)], tags=["comment"])
-async def update_comment_like(comment_id: str, current_user: str = Depends(get_current_session)) -> CommentUpdate:
+@router.patch(
+    "/comment/{comment_id}/like",
+    dependencies=[Depends(get_current_session)],
+    tags=["comment"],
+)
+async def update_comment_like(
+    comment_id: str, current_user: str = Depends(get_current_session)
+) -> CommentUpdate:
     try:
         result = await recipe_service.update_comment_like(comment_id, current_user)
         if result is None:
-            raise HTTPException(
-                status_code=500, detail="Failed to update comment")
+            raise HTTPException(status_code=500, detail="Failed to update comment")
         serialized_comment = json.loads(json.dumps(result, default=str))
         return JSONResponse(content=serialized_comment, status_code=201)
     except Exception as e:
         raise HTTPException(
-            status_code=404, detail=f"Controller:Failed to update comment{str(e)}")
+            status_code=404, detail=f"Controller:Failed to update comment{str(e)}"
+        )
+
 
 # 페이지네이션
 # @router.get("/")

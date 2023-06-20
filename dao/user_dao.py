@@ -3,6 +3,7 @@ from utils.db_manager import MongoDBManager
 from models.user_models import UserInDB
 from fastapi import HTTPException
 from typing import List
+import asyncio
 
 settings = get_settings()
 
@@ -13,7 +14,7 @@ class UserDao:
         self.collection = self.db_manager.get_collection("users")
 
     async def create_user_in_db(self, user_in_db: UserInDB):
-        # subscriptions와 fans를 set에서 list로 변환 
+        # subscriptions와 fans를 set에서 list로 변환
         if isinstance(user_in_db.subscriptions, set):
             user_in_db.subscriptions = list(user_in_db.subscriptions)
         if isinstance(user_in_db.fans, set):
@@ -93,8 +94,11 @@ class UserDao:
     async def modify_subscription(
         self, current_user: str, follow_user_id: str, subscribe: bool
     ) -> None:
-        user = await self.get_user_by_id(current_user)
-        follow_user = await self.get_user_by_id(follow_user_id)
+        # 데이터를 동시에 불러옵니다.
+        user, follow_user = await asyncio.gather(
+            self.get_user_by_id(current_user),
+            self.get_user_by_id(follow_user_id),
+        )
 
         if not user or not follow_user:
             raise HTTPException(status_code=404, detail="사용자를 찾을 수 없습니다.")
@@ -103,42 +107,24 @@ class UserDao:
         if current_user == follow_user_id:
             raise HTTPException(status_code=400, detail="본인을 구독 할 수 없습니다.")
 
-        if (isinstance(user.subscriptions, (list, set)) and
-            isinstance(follow_user.fans, (list, set))):  # 데이터 타입 체크
+        # None 처리
+        user.subscriptions = user.subscriptions or set()
+        follow_user.fans = follow_user.fans or set()
 
-            # subscriptions와 fans를 set으로 변환
-            user_subscriptions = set(user.subscriptions)
-            follow_user_fans = set(follow_user.fans)
-
-            if subscribe:
-                if follow_user_id in user_subscriptions:
-                    raise HTTPException(status_code=409, detail="이미 구독 중입니다")
-                else:
-                    user_subscriptions.add(follow_user_id)
-                    follow_user_fans.add(current_user)
-            else:
-                if follow_user_id in user_subscriptions:
-                    user_subscriptions.remove(follow_user_id)
-                    follow_user_fans.remove(current_user)
-                else:
-                    raise HTTPException(status_code=409, detail="구독을 취소할 수 없습니다.")
-
-            user.subscriptions = list(user_subscriptions)
-            follow_user.fans = list(follow_user_fans)
-
-            # Update the database
-            await self.update_user_in_db(
-                current_user, {"subscriptions": user.subscriptions}
-            )
-            await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
-
+        if subscribe:
+            user.subscriptions.add(follow_user_id)
+            follow_user.fans.add(current_user)
         else:
-            raise HTTPException(status_code=500, detail="서버 내부 오류입니다.")     
+            user.subscriptions.discard(follow_user_id)
+            follow_user.fans.discard(current_user)
 
-        await self.update_user_in_db(
-            current_user, {"subscriptions": user.subscriptions}
+        # 데이터베이스를 동시에 업데이트 합니다 (set을 list로 변환).
+        await asyncio.gather(
+            self.update_user_in_db(
+                current_user, {"subscriptions": list(user.subscriptions)}
+            ),
+            self.update_user_in_db(follow_user_id, {"fans": list(follow_user.fans)}),
         )
-        await self.update_user_in_db(follow_user_id, {"fans": follow_user.fans})
 
     async def get_user_details(self, user_ids: List[str]):
         cursor = self.collection.find({"user_id": {"$in": user_ids}})
@@ -168,11 +154,12 @@ class UserDao:
 
     async def is_user_subscribed(self, current_user: str, follow_user_id: str) -> bool:
         user_doc = await self.collection.find_one(
-        {"user_id": current_user, "subscriptions": follow_user_id},
-        projection={"subscriptions": 1}
+            {"user_id": current_user, "subscriptions": follow_user_id},
+            projection={"subscriptions": 1},
         )
-    
+
         return user_doc is not None
+
 
 def get_user_dao() -> UserDao:
     db_manager = MongoDBManager()

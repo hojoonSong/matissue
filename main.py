@@ -12,10 +12,6 @@ origins = [
     "https://www.matissue.com",
     "https://matissue.com/",
     "https://matissue.com",
-    "https://matissue.onrender.com",
-    "https://matissue-1jim.onrender.com",
-    "https://kdt-sw-4-team10.elicecoding.com",
-    "https://kdt-sw-4-team10.elicecoding.com/",
     # 필요한 출처를 추가하십시오.
 ]
 
@@ -29,11 +25,3 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
-
-
-# # 서버 실행 전에 이메일 전송 함수 실행
-# receiver_email = "bmp.tom@yahoo.com"
-# subject = "Test Email"
-# message = "This is a test email from FastAPI."
-
-# send_email(receiver_email, subject, message)

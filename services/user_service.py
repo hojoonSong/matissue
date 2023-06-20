@@ -23,7 +23,6 @@ class UserService:
         self.user_dao = user_dao
         self.session_manager = SessionManager()
         self.response = Response()
-        
 
     async def create_user(cls, user: UserIn):
         await cls.validate_user_creation(user)
