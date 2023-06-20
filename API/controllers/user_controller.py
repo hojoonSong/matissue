@@ -96,7 +96,9 @@ async def login(user: LoginRequest, response: Response):
             httponly="True",
             samesite="None",
         )
-        return LoginResponse(message="로그인에 성공했습니다!", session_id=str(result["session_id"]))
+        return LoginResponse(
+            message="로그인에 성공했습니다!", session_id=str(result["session_id"])
+        )
     raise HTTPException(status_code=400, detail="로그인에 실패했습니다.")
 
 
@@ -139,6 +141,7 @@ async def get_user(current_user: str = Depends(get_current_session)):
         "fans": user_in_db.fans,
         "subscriptions": user_in_db.subscriptions,
     }
+
 
 @router.get(
     "/", dependencies=[Depends(get_current_session)], responses=common_responses
@@ -196,12 +199,13 @@ async def toggle_subscription(
 
 @router.get(
     "/subscription/status/{follow_user_id}",
+    dependencies=[Depends(get_current_session)],
     responses=common_responses,
 )
 async def check_subscription_status(
-    follow_user_id: str, user_id: str
+    follow_user_id: str, current_user: str = Depends(get_current_session)
 ):
-    is_subscribed = await user_service.is_user_subscribed(user_id, follow_user_id)
+    is_subscribed = await user_service.is_user_subscribed(current_user, follow_user_id)
     return {"is_subscribed": is_subscribed}
 
 
