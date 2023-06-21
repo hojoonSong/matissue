@@ -41,9 +41,34 @@ class RecipeDao:
         result = await self.collection.aggregate(pipeline).to_list(length=None)
         return result
 
-    # async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
-    #     result = await self.collection.find({"recipe_category": category}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
-    #     return result
+    async def search_recipes_with_comments(self, value: str, skip: int = 0, limit: int = 160):
+        pipeline = [
+            {
+                "$match": {
+                    "$or": [
+                        {"recipe_title": {"$regex": value, "$options": "i"}},
+                        {"recipe_category": {"$regex": value, "$options": "i"}},
+                        {"recipe_description": {"$regex": value, "$options": "i"}},
+                        {"recipe_info": {"$regex": value, "$options": "i"}},
+                        {"recipe_ingredients.name": {"$regex": value, "$options": "i"}},
+                    ]
+                }
+            },
+            {"$sort": {"created_at": -1}},
+            {"$skip": skip},
+            {"$limit": limit},
+            {
+                "$lookup": {
+                    "from": "comments",
+                    "localField": "recipe_id",
+                    "foreignField": "comment_parent",
+                    "as": "comments"
+                }
+            }
+        ]
+        result = await self.collection.aggregate(pipeline).to_list(length=None)
+        return result
+    
     async def get_recipes_by_categories_with_comments(self, category, skip: int = 0, limit: int = 160):
         pipeline = [
             {"$match": {"recipe_category": category}},

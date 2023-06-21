@@ -66,52 +66,48 @@ async def get_recipes_by_categories(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @router.get("/categories", response_model=RecipeGetList, tags=["recipes_get"])
-# async def get_recipes_by_categories(
-#     value: str = Query(...), page: int = 1, limit: int = 160
-# ):
-#     try:
-#         skip_count = (page - 1) * limit
-#         recipes = await recipe_service.get_recipes_by_categories(
-#             value, skip=skip_count, limit=limit
-#         )
-#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
-#         if len(recipes) == 0:
-#             return JSONResponse(content=[])
-#         return JSONResponse(content=serialized_recipes)
-#     except Exception as e:
-#         raise HTTPException(status_code=404, detail=str(e))
-
 
 @router.get("/search", response_model=RecipeGetList, tags=["recipes_get"])
 async def search_recipes(value: str, page: int = 1, limit: int = 160):
-    pipeline = [
-        {
-            "$match": {
-                "$or": [
-                    {"recipe_title": {"$regex": value, "$options": "i"}},
-                    {"recipe_category": {"$regex": value, "$options": "i"}},
-                    {"recipe_description": {"$regex": value, "$options": "i"}},
-                    {"recipe_info": {"$regex": value, "$options": "i"}},
-                    {"recipe_ingredients.name": {"$regex": value, "$options": "i"}},
-                ]
-            }
-        },
-        {"$skip": (page - 1) * limit},
-        {"$limit": limit},
-    ]
-    result_cursor = collection.aggregate(pipeline)
-    result = []
-    async for document in result_cursor:
-        result.append(json_util.loads(json_util.dumps(document)))
-    for recipe in result:
-        recipe["comments"] = await recipe_service.get_comments(recipe["recipe_id"])
-        if "comments" not in recipe:
-            recipe["comments"] = []    
-    if len(result) == 0:
-        return JSONResponse(content=[])
-    serialized_recipes = json.loads(json.dumps(result, default=str))
-    return JSONResponse(content=serialized_recipes)
+    try:
+        skip_count = (page - 1) * limit
+        recipes = await recipe_service.search_recipes(value, skip=skip_count, limit=limit)
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
+        if len(recipes) == 0:
+            return JSONResponse(content=[])
+        return JSONResponse(content=serialized_recipes)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# @router.get("/search", response_model=RecipeGetList, tags=["recipes_get"])
+# async def search_recipes(value: str, page: int = 1, limit: int = 160):
+#     pipeline = [
+#         {
+#             "$match": {
+#                 "$or": [
+#                     {"recipe_title": {"$regex": value, "$options": "i"}},
+#                     {"recipe_category": {"$regex": value, "$options": "i"}},
+#                     {"recipe_description": {"$regex": value, "$options": "i"}},
+#                     {"recipe_info": {"$regex": value, "$options": "i"}},
+#                     {"recipe_ingredients.name": {"$regex": value, "$options": "i"}},
+#                 ]
+#             }
+#         },
+#         {"$skip": (page - 1) * limit},
+#         {"$limit": limit},
+#     ]
+#     result_cursor = collection.aggregate(pipeline)
+#     result = []
+#     async for document in result_cursor:
+#         result.append(json_util.loads(json_util.dumps(document)))
+#     for recipe in result:
+#         recipe["comments"] = await recipe_service.get_comments(recipe["recipe_id"])
+#         if "comments" not in recipe:
+#             recipe["comments"] = []    
+#     if len(result) == 0:
+#         return JSONResponse(content=[])
+#     serialized_recipes = json.loads(json.dumps(result, default=str))
+#     return JSONResponse(content=serialized_recipes)
 
 
 @router.get(
