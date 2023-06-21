@@ -175,17 +175,25 @@ class RecipeDao:
         result = await self.collection.aggregate(pipeline).to_list(length=None)
         return result
 
-    async def get_recipes_by_ingredients(self, value):
+    async def get_recipes_by_ingredients_with_comments(self, value: str):
         pipeline = [
             {"$match": {
                 "$or": [
                     {"recipe_ingredients.name": {"$regex": value, "$options": "i"}}
                 ]
-            }}
+            }},
+            {
+                "$lookup": {
+                    "from": "comments",
+                    "localField": "recipe_id",
+                    "foreignField": "comment_parent",
+                    "as": "comments"
+                }
+            }
         ]
         results = await self.collection.aggregate(pipeline).to_list(length=None)
         return results
-    
+        
     async def get_recipe_by_recipe_id(self, recipe_id):
         recipe = await self.collection.find_one({"recipe_id": recipe_id})
         # user = await self.user_collection.find_one({"user_id": recipe["user_id"]})

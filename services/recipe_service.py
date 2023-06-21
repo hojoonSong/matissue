@@ -85,18 +85,13 @@ class RecipeService:
             logger.error(f"Failed to get recipes by single serving: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to get recipes by single serving")
 
-    async def get_recipes_by_ingredients(self, value):
+    async def get_recipes_by_ingredients(self, value: str):
         try:
-            results = await self.recipe_dao.get_recipes_by_ingredients(value)
-            for recipe in results:
-                recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])   
+            results = await self.recipe_dao.get_recipes_by_ingredients_with_comments(value)
             return results
         except Exception as e:
             logger.error(f"Failed to get recipes by ingredients: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get recipes by ingredients"
-            )
+            raise HTTPException(status_code=500, detail="Failed to get recipes by ingredients")
 
     async def get_recipe_by_recipe_id(self, recipe_id):
         try:
@@ -108,17 +103,6 @@ class RecipeService:
                 status_code=500,
                 detail="Failed to get recipe by recipe id"
             )
-    async def get_recipe_by_search(self,value):
-        try:
-            result = await self.recipe_dao.get_recipe_by_recipe_id(recipe_id)
-            return result
-        except Exception as e:
-            logger.error(f"Failed to get recipe by recipe id: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get recipe by recipe id"
-            )
-
 
 
     async def get_recipe_to_update_recipe(self, recipe_id):
