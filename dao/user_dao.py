@@ -112,6 +112,9 @@ class UserDao:
         follow_user.fans = follow_user.fans or set()
 
         if subscribe:
+            # 이미 구독하고 있는지 체크
+            if follow_user_id in user.subscriptions:
+                raise HTTPException(status_code=400, detail="이미 구독한 사용자입니다.")
             user.subscriptions.add(follow_user_id)
             follow_user.fans.add(current_user)
         else:
@@ -125,6 +128,7 @@ class UserDao:
             ),
             self.update_user_in_db(follow_user_id, {"fans": list(follow_user.fans)}),
         )
+
 
     async def get_user_details(self, user_ids: List[str]):
         cursor = self.collection.find({"user_id": {"$in": user_ids}})
