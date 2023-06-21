@@ -60,7 +60,7 @@ async def get_recipes_by_categories(
 
 
 @router.get("/search", response_model=RecipeGetList, tags=["recipes_get"])
-async def search_recipes_by_title(value: str, page: int = 1, limit: int = 160):
+async def search_recipes(value: str, page: int = 1, limit: int = 160):
     pipeline = [
         {
             "$match": {
@@ -80,6 +80,10 @@ async def search_recipes_by_title(value: str, page: int = 1, limit: int = 160):
     result = []
     async for document in result_cursor:
         result.append(json_util.loads(json_util.dumps(document)))
+    for recipe in result:
+        recipe["comments"] = await recipe_service.get_comments(recipe["recipe_id"])
+        if "comments" not in recipe:
+            recipe["comments"] = []    
     if len(result) == 0:
         return JSONResponse(content=[])
     serialized_recipes = json.loads(json.dumps(result, default=str))

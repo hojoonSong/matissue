@@ -24,6 +24,7 @@ class RecipeService:
             result = await self.recipe_dao.get_all_recipes(skip=skip, limit=limit)
             for recipe in result:
                 recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])
+            print(result)    
             return result
         except Exception as e:
             logger.error(f"Failed to get all recipes: {str(e)}")
