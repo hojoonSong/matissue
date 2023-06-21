@@ -41,10 +41,6 @@ async def get_all_recipes(page: int = 1, limit: int = 160):
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
     
-<<<<<<< HEAD
-=======
-    
->>>>>>> 2594212 ([fix] 댓글 없는 게시글은 빈배열로 보내게함)
 # @router.get("/", response_model=RecipeGetList, tags=["recipes_get"])
 # async def get_all_recipes(page: int = 1, limit: int = 160):
 #     try:
