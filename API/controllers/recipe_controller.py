@@ -175,19 +175,14 @@ async def get_recipes_by_ingredients(value: str):
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-
-
 @router.get("/{recipe_id}", tags=["recipes_get"])
 async def get_recipe_by_recipe_id(recipe_id: str):
-    print('🍏')
     recipe = await recipe_service.get_recipe_by_recipe_id(recipe_id)
     if recipe is None:
         raise HTTPException(
             status_code=404,
             detail=f"Recipe with id {recipe_id} not found"
         )
-    comments = await recipe_service.get_comments(recipe_id)
-    recipe['comments'] = comments
     await recipe_service.update_recipe_view(recipe_id)
     serialized_recipes = json.loads(json.dumps(recipe, default=str))
     return JSONResponse(content={"recipe": serialized_recipes})

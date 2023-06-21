@@ -194,13 +194,22 @@ class RecipeDao:
         results = await self.collection.aggregate(pipeline).to_list(length=None)
         return results
         
-    async def get_recipe_by_recipe_id(self, recipe_id):
-        recipe = await self.collection.find_one({"recipe_id": recipe_id})
-        # user = await self.user_collection.find_one({"user_id": recipe["user_id"]})
-        # recipe['user_img'] = user["img"]
-        # recipe['user_fan'] = len(user.get('fans', []))
-        # recipe['user_subscription'] = len(user.get('subscription', []))
-        return recipe
+    async def get_recipe_by_recipe_id_with_comments(self, recipe_id: str):
+        pipeline = [
+            {"$match": {"recipe_id": recipe_id}},
+            {
+                "$lookup": {
+                    "from": "comments",
+                    "localField": "recipe_id",
+                    "foreignField": "comment_parent",
+                    "as": "comments"
+                }
+            }
+        ]
+        recipe = await self.collection.aggregate(pipeline).to_list(length=None)
+        if len(recipe) == 0:
+            return None
+        return recipe[0]
 
     async def get_recipe_to_update_recipe(self, id):
         result = await self.collection.find_one({"recipe_id": id})

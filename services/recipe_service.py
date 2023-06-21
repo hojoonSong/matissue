@@ -93,16 +93,13 @@ class RecipeService:
             logger.error(f"Failed to get recipes by ingredients: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to get recipes by ingredients")
 
-    async def get_recipe_by_recipe_id(self, recipe_id):
+    async def get_recipe_by_recipe_id(self, recipe_id: str):
         try:
-            result = await self.recipe_dao.get_recipe_by_recipe_id(recipe_id)
-            return result
+            recipe = await self.recipe_dao.get_recipe_by_recipe_id_with_comments(recipe_id)
+            return recipe
         except Exception as e:
             logger.error(f"Failed to get recipe by recipe id: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get recipe by recipe id"
-            )
+            raise HTTPException(status_code=500, detail="Failed to get recipe by recipe id")
 
 
     async def get_recipe_to_update_recipe(self, recipe_id):
