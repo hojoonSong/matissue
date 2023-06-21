@@ -40,7 +40,15 @@ async def get_all_recipes(page: int = 1, limit: int = 160):
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
-
+    
+# @router.get("/", response_model=RecipeGetList, tags=["recipes_get"])
+# async def get_all_recipes(page: int = 1, limit: int = 160):
+#     try:
+#         skip_count = (page - 1) * limit
+#         recipes = await recipe_service.get_all_recipes(skip=skip_count, limit=limit)
+#         return JSONResponse(content=recipes)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/categories", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_categories(
