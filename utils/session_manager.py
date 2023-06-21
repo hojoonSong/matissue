@@ -8,7 +8,8 @@ import uuid
 import random
 import string
 import aioredis
-from datetime import datetime
+import datetime
+from datetime import datetime, timedelta
 
 
 settings = get_settings()
@@ -62,7 +63,8 @@ class SessionManager:
     async def create_verification_code(self, email: str):
         verification_code = str(uuid.uuid4())
         redis_client = await self.get_redis_client()
-        await redis_client.set(verification_code, email, expire=86400)
+        await redis_client.set(verification_code, email)
+        await redis_client.expire(verification_code, 86400)
         return verification_code
 
     async def verify_email(self, code: str):
@@ -82,7 +84,8 @@ class SessionManager:
         )
         user_json = user_in_redis.json()
         redis_client = await self.get_redis_client()
-        await redis_client.set(user_in_redis.email, user_json, expire=86400)
+        await redis_client.set(user_in_redis.email, user_json)
+        await redis_client.expire(user_in_redis.email, 86400)
 
     async def get_user_info(self, email: str):
         redis_client = await self.get_redis_client()
