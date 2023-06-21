@@ -87,6 +87,29 @@ class RecipeDao:
         result = await self.collection.aggregate(pipeline).to_list(length=None)
         return result
     
+    async def get_recipes_by_user_id_with_comments(self, user_id: str, skip: int = 0, limit: int = 160):
+        pipeline = [
+            {"$match": {"user_id": user_id}},
+            {"$sort": {"created_at": -1}},
+            {"$skip": skip},
+            {"$limit": limit},
+            {
+                "$lookup": {
+                    "from": "comments",
+                    "localField": "recipe_id",
+                    "foreignField": "comment_parent",
+                    "as": "comments"
+                }
+            }
+        ]
+        result = await self.collection.aggregate(pipeline).to_list(length=None)
+        return result
+    # async def get_recipes_by_user_id(self, user_id, skip: int = 0, limit: int = 160):
+    #     result = await self.collection.find(
+    #         {"user_id": user_id}
+    #     ).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
+    #     return result   
+    
     async def get_recipes_by_popularity(self, skip: int = 0, limit: int = 160):
         pipeline = [
             {
@@ -112,11 +135,7 @@ class RecipeDao:
         results = await self.collection.find().sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
         return results
     
-    async def get_recipes_by_user_id(self, user_id, skip: int = 0, limit: int = 160):
-        result = await self.collection.find(
-            {"user_id": user_id}
-        ).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
-        return result
+
     
     async def get_recipes_by_single_serving(self, skip: int = 0, limit: int = 160):
         results = await self.collection.find({"recipe_info.serving": 1}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
