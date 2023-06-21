@@ -29,16 +29,26 @@ class RecipeService:
 
     async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
         try:
-            result = await self.recipe_dao.get_recipes_by_categories(category, skip=skip, limit=limit)
-            for recipe in result:
-                recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])
-            return result
+            recipes = await recipe_dao.get_recipes_by_categories_with_comments(
+                category, skip=skip, limit=limit
+            )
+            return recipes
         except Exception as e:
             logger.error(f"Failed to get recipes by categories: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get recipes by categories"
-            )
+            raise HTTPException(status_code=500, detail="Failed to get recipes by categories")
+
+    # async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
+    #     try:
+    #         result = await self.recipe_dao.get_recipes_by_categories(category, skip=skip, limit=limit)
+    #         for recipe in result:
+    #             recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])
+    #         return result
+    #     except Exception as e:
+    #         logger.error(f"Failed to get recipes by categories: {str(e)}")
+    #         raise HTTPException(
+    #             status_code=500,
+    #             detail="Failed to get recipes by categories"
+    #         )
 
     async def get_recipes_by_popularity(self, skip: int = 0, limit: int = 160):
         try:

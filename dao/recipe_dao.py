@@ -19,13 +19,14 @@ class RecipeDao:
 
     # get
 
-    async def get_all_recipes(self, skip: int = 0, limit: int = 160):
-        cursor = self.collection.find({}).sort("created_at", -1).skip(skip).limit(limit)
-        result = await cursor.to_list(length=None)
-        return result
+    # async def get_all_recipes(self, skip: int = 0, limit: int = 160):
+    #     cursor = self.collection.find({}).sort("created_at", -1).skip(skip).limit(limit)
+    #     result = await cursor.to_list(length=None)
+    #     return result
 
     async def get_all_recipes_with_comments(self, skip: int = 0, limit: int = 160):
         pipeline = [
+            {"$sort": {"created_at": -1}},
             {"$skip": skip},
             {"$limit": limit},
             {
@@ -40,8 +41,26 @@ class RecipeDao:
         result = await self.collection.aggregate(pipeline).to_list(length=None)
         return result
 
-    async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
-        result = await self.collection.find({"recipe_category": category}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
+    # async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
+    #     result = await self.collection.find({"recipe_category": category}).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
+    #     return result
+
+    async def get_recipes_by_categories_with_comments(self, category, skip: int = 0, limit: int = 160):
+        pipeline = [
+            {"$match": {"recipe_category": category}},
+            {"$sort": {"created_at": -1}},
+            {"$skip": skip},
+            {"$limit": limit},
+            {
+                "$lookup": {
+                    "from": "comments",
+                    "localField": "recipe_id",
+                    "foreignField": "comment_parent",
+                    "as": "comments"
+                }
+            }
+        ]
+        result = await self.collection.aggregate(pipeline).to_list(length=None)
         return result
 
     async def get_recipes_by_popularity(self, skip: int = 0, limit: int = 160):
