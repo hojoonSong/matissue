@@ -104,21 +104,30 @@ class RecipeDao:
         ]
         result = await self.collection.aggregate(pipeline).to_list(length=None)
         return result
-    # async def get_recipes_by_user_id(self, user_id, skip: int = 0, limit: int = 160):
-    #     result = await self.collection.find(
-    #         {"user_id": user_id}
-    #     ).sort("created_at", -1).skip(skip).limit(limit).to_list(length=None)
-    #     return result   
     
-    async def get_recipes_by_popularity(self, skip: int = 0, limit: int = 160):
+    async def get_recipes_by_popularity_with_comments(self, skip: int = 0, limit: int = 160):
         pipeline = [
             {
                 "$addFields": {
-                    "recipe_like_length": { "$size": "$recipe_like" }
+                    "recipe_like_length": {"$size": "$recipe_like"}
                 }
             },
             {
-                "$sort": { "recipe_like_length": -1 }
+                "$sort": {"recipe_like_length": -1}
+            },
+            {
+                "$skip": skip
+            },
+            {
+                "$limit": limit
+            },
+            {
+                "$lookup": {
+                    "from": "comments",
+                    "localField": "recipe_id",
+                    "foreignField": "comment_parent",
+                    "as": "comments"
+                }
             },
             {
                 "$project": {
@@ -128,7 +137,6 @@ class RecipeDao:
         ]
         cursor = self.collection.aggregate(pipeline)
         results = await cursor.to_list(length=None)
-        results = results[skip:skip+limit]  # 페이지네이션을 위해 결과를 잘라냄
         return results
 
     async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):

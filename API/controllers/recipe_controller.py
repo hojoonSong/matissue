@@ -34,9 +34,9 @@ async def get_all_recipes(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
         recipes = await recipe_service.get_all_recipes(skip=skip_count, limit=limit)
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
@@ -50,9 +50,9 @@ async def get_recipes_by_categories(
         recipes = await recipe_service.get_recipes_by_categories(
             value, skip=skip_count, limit=limit
         )
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -63,9 +63,9 @@ async def search_recipes(value: str, page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
         recipes = await recipe_service.search_recipes(value, skip=skip_count, limit=limit)
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -84,9 +84,9 @@ async def get_recipes_by_current_user(
         recipes = await recipe_service.get_recipes_by_user_id(
             current_user, skip=skip_count, limit=limit
         )
-        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         if len(recipes) == 0:
             return JSONResponse(content=[])
+        serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content={"recipes":serialized_recipes})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -107,23 +107,6 @@ async def get_recipe_by_user_id(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# @router.get("/user/{user_id}", tags=["recipes_get"])
-# async def get_recipe_by_user(
-#     user_id, page: int = 1, limit: int = 150
-# ):
-#     try:
-#         skip_count = (page - 1) * limit
-#         recipes = await recipe_service.get_recipes_by_user_id(
-#             user_id, skip=skip_count, limit=limit
-#         )
-#         if len(recipes) == 0:
-#             return JSONResponse(content=[])
-#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
-#         return JSONResponse(content=serialized_recipes)
-#     except Exception as e:
-#         raise HTTPException(status_code=404, detail=str(e))
-
-
 @router.get("/popularity", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
     try:
@@ -136,7 +119,23 @@ async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# @router.get("/popularity", response_model=RecipeGetList, tags=["recipes_get"])
+# async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
+#     try:
+#         skip_count = (page - 1) * limit
+#         recipes = await recipe_service.get_recipes_by_popularity(
+#             skip=skip_count, limit=limit
+#         )
+#         if len(recipes) == 0:
+#             return JSONResponse(content=[])
+#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
+#         return JSONResponse(content=serialized_recipes)
+#     except Exception as e:
+#         raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/latest", response_model=RecipeGetList, tags=["recipes_get"])
