@@ -153,8 +153,8 @@ async def get_recipes_by_single_serving(page: int = 1, limit: int = 160):
 async def get_recipes_by_vegetarian(page: int = 1, limit: int = 160):
     try:
         skip_count = (page - 1) * limit
-        recipes = await recipe_service.get_recipes_by_vegetarian(
-            skip=skip_count, limit=limit
+        recipes = await recipe_service.get_recipes_by_categories(
+            category="vegetarian",skip=skip_count, limit=limit
         )
         if len(recipes) == 0:
             return JSONResponse(content=[])
