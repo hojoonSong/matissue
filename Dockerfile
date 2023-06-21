@@ -1,4 +1,3 @@
-# Dockerfile
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
 # 의존성 설치

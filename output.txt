@@ -11,11 +11,23 @@
 │       ├── user_routes.py
 │       ├── verify_routes.py
 │       └── websocket_routes.py
+├── DATABASE
+│   ├── comments.bson
+│   ├── comments.metadata.json
+│   ├── docker-entrypoint.sh
+│   ├── recipes.bson
+│   ├── recipes.metadata.json
+│   ├── users.bson
+│   └── users.metadata.json
+├── Dockerfile
 ├── README.md
 ├── constants.py
 ├── dao
 │   ├── recipe_dao.py
 │   └── user_dao.py
+├── docker-compose.yml
+├── letsencrypt
+│   └── acme.json
 ├── main.py
 ├── models
 │   ├── recipe_models.py
@@ -42,4 +54,4 @@
     ├── session_manager.py
     └── websocket_manager.py
 
-8 directories, 34 files
+10 directories, 44 files

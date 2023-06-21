@@ -2,6 +2,9 @@
 .gitignore
 .vscode
 debug.log
+docker-compose.yml
+Dockerfile
+letsencrypt
 
 # Ignore pycache folders
 __pycache__/
