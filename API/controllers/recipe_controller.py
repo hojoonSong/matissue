@@ -41,7 +41,6 @@ async def get_all_recipes(page: int = 1, limit: int = 160):
     except Exception as e:
         raise HTTPException(status_code=404, detail=str(e))
     
-    
 # @router.get("/", response_model=RecipeGetList, tags=["recipes_get"])
 # async def get_all_recipes(page: int = 1, limit: int = 160):
 #     try:
