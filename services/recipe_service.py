@@ -67,17 +67,13 @@ class RecipeService:
 
     async def get_recipes_by_latest(self, skip: int = 0, limit: int = 160):
         try:
-            results = await self.recipe_dao.get_recipes_by_latest(skip=skip, limit=limit)
-            for recipe in results:
-                recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])   
+            results = await self.recipe_dao.get_recipes_by_latest_with_comments(
+                skip=skip, limit=limit
+            )
             return results
         except Exception as e:
             logger.error(f"Failed to get recipes by latest: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get recipes by latest"
-            )
-        
+            raise HTTPException(status_code=500, detail="Failed to get recipes by latest")
 
         
     async def get_recipes_by_single_serving(self, skip: int = 0, limit: int = 160):

@@ -121,23 +121,6 @@ async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-
-# @router.get("/popularity", response_model=RecipeGetList, tags=["recipes_get"])
-# async def get_recipes_by_popularity(page: int = 1, limit: int = 160):
-#     try:
-#         skip_count = (page - 1) * limit
-#         recipes = await recipe_service.get_recipes_by_popularity(
-#             skip=skip_count, limit=limit
-#         )
-#         if len(recipes) == 0:
-#             return JSONResponse(content=[])
-#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
-#         return JSONResponse(content=serialized_recipes)
-#     except Exception as e:
-#         raise HTTPException(status_code=404, detail=str(e))
-
-
 @router.get("/latest", response_model=RecipeGetList, tags=["recipes_get"])
 async def get_recipes_by_latest(page: int = 1, limit: int = 160):
     try:
@@ -150,7 +133,22 @@ async def get_recipes_by_latest(page: int = 1, limit: int = 160):
         serialized_recipes = json.loads(json.dumps(recipes, default=str))
         return JSONResponse(content=serialized_recipes)
     except Exception as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# @router.get("/latest", response_model=RecipeGetList, tags=["recipes_get"])
+# async def get_recipes_by_latest(page: int = 1, limit: int = 160):
+#     try:
+#         skip_count = (page - 1) * limit
+#         recipes = await recipe_service.get_recipes_by_latest(
+#             skip=skip_count, limit=limit
+#         )
+#         if len(recipes) == 0:
+#             return JSONResponse(content=[])
+#         serialized_recipes = json.loads(json.dumps(recipes, default=str))
+#         return JSONResponse(content=serialized_recipes)
+#     except Exception as e:
+#         raise HTTPException(status_code=404, detail=str(e))
 
 
 @router.get("/single", response_model=RecipeGetList, tags=["recipes_get"])
