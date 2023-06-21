@@ -19,9 +19,9 @@ class RecipeService:
     def __init__(self, recipe_dao: RecipeDao):
         self.recipe_dao = recipe_dao
 
-    async def get_all_recipes(self,skip: int = 0, limit: int = 160):
+    async def get_all_recipes(self, skip: int = 0, limit: int = 160):
         try:
-            recipes = await recipe_dao.get_all_recipes_with_comments( skip=skip, limit=limit)
+            recipes = await recipe_dao.get_all_recipes_with_comments(skip=skip, limit=limit)
             return recipes
         except Exception as e:
             logger.error(f"Failed to get all recipes: {str(e)}")
