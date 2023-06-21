@@ -19,19 +19,13 @@ class RecipeService:
     def __init__(self, recipe_dao: RecipeDao):
         self.recipe_dao = recipe_dao
 
-    async def get_all_recipes(self,skip: int = 0, limit: int = 160):
+    async def get_all_recipes(self, skip: int = 0, limit: int = 160):
         try:
-            result = await self.recipe_dao.get_all_recipes(skip=skip, limit=limit)
-            for recipe in result:
-                recipe["comments"] = await self.recipe_dao.get_comments(recipe["recipe_id"])
-            print(result)    
-            return result
+            recipes = await recipe_dao.get_all_recipes_with_comments(skip=skip, limit=limit)
+            return recipes
         except Exception as e:
             logger.error(f"Failed to get all recipes: {str(e)}")
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to get all recipes"
-            )
+            raise HTTPException(status_code=500, detail="Failed to get all recipes")
 
     async def get_recipes_by_categories(self, category, skip: int = 0, limit: int = 160):
         try:
