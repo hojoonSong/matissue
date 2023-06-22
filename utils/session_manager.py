@@ -100,7 +100,8 @@ class SessionManager:
             random.choices(string.ascii_uppercase + string.digits, k=6)
         )
         redis_client = await self.get_redis_client()
-        await redis_client.set(verification_code, email, expire=1800)
+        await redis_client.set(verification_code, email)
+        await redis_client.expire(verification_code, 1800)
         return verification_code
 
     async def check_verification_code(self, email: str, code: str):
