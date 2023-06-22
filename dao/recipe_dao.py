@@ -294,7 +294,7 @@ class RecipeDao:
 
     async def delete_one_recipe(self, recipe_id: str, current_user):
         existing_recipe = await self.collection.find_one({"recipe_id": recipe_id})
-        if existing_recipe['user_id'] != current_user:
+        if existing_recipe['user_id'] != current_user and current_user != "admin":
             raise HTTPException(
                 status_code=403,
                 detail="You are not authorized to delete this recipe"
